@@ -14,6 +14,15 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <script>
+            // Force Light Mode on Auth Pages (Login/Register)
+            // This ensures that when user logs in, they start with Light Mode
+            localStorage.setItem('theme', 'light');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+            }
+        </script>
     </head>
     <body class="font-sans antialiased text-gray-900 bg-white">
         {{ $slot }}
