@@ -1,0 +1,89 @@
+@extends('layouts.petugas')
+
+@section('content')
+
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row justify-between items-center mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Data SIMPER</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Kelola data pengajuan SIMPER</p>
+    </div>
+    
+    <!-- Action Button -->
+    <div class="mt-4 md:mt-0">
+        <a href="{{ route('petugas.simper.create') }}" 
+           class="inline-flex items-center justify-center px-4 py-2 bg-secondary text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-all">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Buat SIMPER Baru
+        </a>
+    </div>
+</div>
+
+<!-- MAIN CARD -->
+<div class="bg-white dark:bg-night-card rounded-xl shadow-lg border border-gray-100 dark:border-night-border overflow-hidden">
+    
+    <!-- TABLE SECTION -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">No</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">NPK</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tanggal Uji</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-night-card divide-y divide-gray-200 dark:divide-gray-700">
+                @forelse($assessments as $index => $item)
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {{ $loop->iteration + ($assessments->currentPage() - 1) * $assessments->perPage() }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $item->nama ?? '-' }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $item->perusahaan ?? '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                            {{ $item->npk }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {{ $item->tanggal_uji ? \Carbon\Carbon::parse($item->tanggal_uji)->format('d M Y') : '-' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <a href="{{ route('petugas.simper.show', $item->id) }}" 
+                           class="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition-colors shadow-sm">
+                            Detail
+                        </a>
+                        <a href="{{ route('petugas.simper.edit', $item->id) }}" 
+                           class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-2 dark:focus:ring-yellow-900 transition-colors shadow-sm">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span class="text-base font-medium">Tidak ada data SIMPER</span>
+                            <span class="text-sm mt-1">Silakan buat pengajuan baru</span>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    @if($assessments->hasPages())
+    <div class="bg-white dark:bg-night-card px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
+        {{ $assessments->withQueryString()->links() }}
+    </div>
+    @endif
+</div>
+
+@endsection

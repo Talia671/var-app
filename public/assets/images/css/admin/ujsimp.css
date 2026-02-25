@@ -1,0 +1,68 @@
+/* ===============================
+   UJSIMP MODULE STYLE
+   =============================== */
+
+.ujsimp-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.ujsimp-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.ujsimp-subtitle {
+    color: #6b7280;
+    margin-bottom: 25px;
+}
+
+.ujsimp-status-box {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.ujsimp-status-lulus {
+    background: #e6f9f0;
+    color: #059669;
+}
+
+.ujsimp-status-gagal {
+    background: #ffe5e5;
+    color: #dc2626;
+}
+
+.ujsimp-identitas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.ujsimp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.ujsimp-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    text-align: left;
+}
+
+.ujsimp-table td {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+}
+
+.ujsimp-table td.center {
+    text-align: center;
+}
