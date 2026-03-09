@@ -288,9 +288,8 @@ body {
         </thead>
         <tbody>
             @php
-                $itemsConfig = config('ujsimp.items');
                 $scoresMap = $test->scores->keyBy('ujsimp_item_id');
-                $romans = ['I', 'II'];
+                $romans = ['I', 'II', 'III', 'IV'];
             @endphp
 
             @foreach($itemsConfig as $catIdx => $category)

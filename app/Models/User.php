@@ -21,7 +21,22 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'department',
+        'npk',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::updating(function ($user) {
+            if ($user->isDirty('security_code')) {
+                throw new \Exception('Security Code cannot be modified.');
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.

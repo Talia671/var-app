@@ -11,7 +11,7 @@ class SimperNote extends Model
     protected $fillable = [
         'simper_document_id',
         'no_urut',
-        'uraian'
+        'uraian',
     ];
 
     // Property accessor for compatibility with view

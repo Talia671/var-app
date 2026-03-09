@@ -1,333 +1,210 @@
 @extends('layouts.admin')
 
 @section('content')
-<div x-data="{ viewMode: 'cards' }">
-    <!-- Header & Controls -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Admin</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Ringkasan statistik pengajuan dokumen</p>
+<div class="py-6">
+    <div class="container-page">
+        {{-- HIDDEN DATA CONTAINER FOR CHARTS --}}
+        <div id="dashboard-chart-data" 
+             data-submitted="{{ json_encode($chartSubmitted) }}"
+             data-pending="{{ json_encode($chartPending) }}"
+             data-verification="{{ json_encode($chartVerificationResult) }}"
+             class="hidden">
         </div>
-        
-        <div class="flex items-center space-x-4 mt-4 md:mt-0">
-            <!-- View Switch -->
-            <div class="bg-gray-200 dark:bg-gray-700 p-1 rounded-lg flex items-center">
-                <button @click="viewMode = 'cards'" 
-                        :class="viewMode === 'cards' ? 'bg-white dark:bg-gray-600 text-secondary dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                    Cards
-                </button>
-                <button @click="viewMode = 'chart'" 
-                        :class="viewMode === 'chart' ? 'bg-white dark:bg-gray-600 text-secondary dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                    Chart
-                </button>
+
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+            <div>
+                <h2 class="page-title">Dashboard Admin Perijinan</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Statistik form dan verifikasi</p>
             </div>
 
-            <!-- Time Filter -->
-            <form id="filterForm" method="GET" action="{{ route('admin.dashboard') }}">
-                <select name="filter" onchange="document.getElementById('filterForm').submit()"
-                        class="form-select block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer">
-                    <option value="1_day" {{ $filter == '1_day' ? 'selected' : '' }}>1 Hari Terakhir</option>
-                    <option value="3_days" {{ $filter == '3_days' ? 'selected' : '' }}>3 Hari Terakhir</option>
-                    <option value="1_week" {{ $filter == '1_week' ? 'selected' : '' }}>1 Minggu Terakhir</option>
-                    <option value="1_month" {{ $filter == '1_month' ? 'selected' : '' }}>1 Bulan Terakhir</option>
+            <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <select name="range" onchange="this.form.submit()"
+                        class="form-select block w-full sm:w-44 pl-3 pr-10 py-2 text-sm border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-secondary focus:border-secondary rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer">
+                    <option value="today" {{ $range === 'today' ? 'selected' : '' }}>Today</option>
+                    <option value="week" {{ $range === 'week' ? 'selected' : '' }}>This Week</option>
+                    <option value="month" {{ $range === 'month' ? 'selected' : '' }}>This Month</option>
+                </select>
+
+                <select name="category" onchange="this.form.submit()"
+                        class="form-select block w-full sm:w-44 pl-3 pr-10 py-2 text-sm border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-secondary focus:border-secondary rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer">
+                    <option value="all" {{ $category === 'all' ? 'selected' : '' }}>All Form</option>
+                    <option value="simper" {{ $category === 'simper' ? 'selected' : '' }}>Simper</option>
+                    <option value="ujsimp" {{ $category === 'ujsimp' ? 'selected' : '' }}>UJSIMP</option>
+                    <option value="checkup" {{ $category === 'checkup' ? 'selected' : '' }}>Checklist</option>
+                    <option value="ranmor" {{ $category === 'ranmor' ? 'selected' : '' }}>Ranmor</option>
                 </select>
             </form>
         </div>
-    </div>
 
-    <!-- CARDS VIEW -->
-    <div x-show="viewMode === 'cards'" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform scale-95"
-         x-transition:enter-end="opacity-100 transform scale-100"
-         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <!-- SIMPER Card -->
-        <div class="bg-white dark:bg-night-card rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-night-border group relative">
-            <div class="p-5">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">SIMPER</p>
-                        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $simperStats['approved'] }}</h3>
-                        <p class="text-xs text-green-500 font-semibold mt-1 flex items-center">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Approved
-                        </p>
-                    </div>
-                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-secondary dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    </div>
+        <div class="grid grid-cols-1 gap-6">
+            <div class="card-ui">
+                <div class="mb-4">
+                    <h3 class="card-header text-gray-800 dark:text-white">Form Submitted by Checker</h3>
+                    <p class="card-body text-xs text-gray-500 dark:text-gray-400 mt-1">Jumlah form dibuat (group by module)</p>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-xs">
-                    <span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md font-medium">{{ $simperStats['pending'] }} Pending</span>
-                    <a href="{{ route('admin.simper.index') }}" class="text-secondary dark:text-blue-400 hover:text-blue-600 font-semibold flex items-center transition-colors">
-                        View Details 
-                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
+                <div class="relative h-80 w-full">
+                    <canvas id="chartSubmitted"></canvas>
                 </div>
             </div>
-            <!-- Bottom Accent -->
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary"></div>
-        </div>
 
-        <!-- UJSIMP Card -->
-        <div class="bg-white dark:bg-night-card rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-night-border group relative">
-            <div class="p-5">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">UJSIMP</p>
-                        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $ujsimpStats['approved'] }}</h3>
-                        <p class="text-xs text-green-500 font-semibold mt-1 flex items-center">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Approved
-                        </p>
-                    </div>
-                    <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl text-primary dark:text-orange-400 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                    </div>
+            <div class="card-ui">
+                <div class="mb-4">
+                    <h3 class="card-header text-gray-800 dark:text-white">Form Pending Verification</h3>
+                    <p class="card-body text-xs text-gray-500 dark:text-gray-400 mt-1">Pending = workflow_status submitted</p>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-xs">
-                    <span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md font-medium">{{ $ujsimpStats['pending'] }} Pending</span>
-                    <a href="{{ route('admin.ujsimp.index') }}" class="text-primary dark:text-orange-400 hover:text-orange-600 font-semibold flex items-center transition-colors">
-                        View Details 
-                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
+                <div class="relative h-80 w-full">
+                    <canvas id="chartPending"></canvas>
                 </div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
-        </div>
 
-        <!-- CHECKUP Card -->
-        <div class="bg-white dark:bg-night-card rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-night-border group relative">
-            <div class="p-5">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">CHECKUP</p>
-                        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $checkupStats['approved'] }}</h3>
-                        <p class="text-xs text-green-500 font-semibold mt-1 flex items-center">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Approved
-                        </p>
-                    </div>
-                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
+            <div class="card-ui">
+                <div class="mb-4">
+                    <h3 class="card-header text-gray-800 dark:text-white">Verification Result</h3>
+                    <p class="card-body text-xs text-gray-500 dark:text-gray-400 mt-1">Verified vs Rejected (all modules)</p>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-xs">
-                    <span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md font-medium">{{ $checkupStats['pending'] }} Pending</span>
-                    <a href="{{ route('admin.checkup.index') }}" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold flex items-center transition-colors">
-                        View Details 
-                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
+                <div class="relative h-72 w-full">
+                    <canvas id="chartVerificationResult"></canvas>
                 </div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-emerald-500"></div>
-        </div>
-
-        <!-- RANMOR Card -->
-        <div class="bg-white dark:bg-night-card rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-night-border group relative">
-            <div class="p-5">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">RANMOR</p>
-                        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $ranmorStats['approved'] }}</h3>
-                        <p class="text-xs text-green-500 font-semibold mt-1 flex items-center">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Approved
-                        </p>
-                    </div>
-                    <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                    </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-xs">
-                    <span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md font-medium">{{ $ranmorStats['pending'] }} Pending</span>
-                    <a href="{{ route('admin.ranmor.index') }}" class="text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold flex items-center transition-colors">
-                        View Details 
-                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-            </div>
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-violet-500"></div>
-        </div>
-    </div>
-
-    <!-- CHART VIEW -->
-    <div x-show="viewMode === 'chart'" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-4"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         class="bg-white dark:bg-night-card rounded-xl shadow-lg p-6 border border-gray-100 dark:border-night-border"
-         style="display: none;"> <!-- Hidden by default, Alpine handles visibility -->
-        
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Trend Pengajuan Dokumen</h3>
-        </div>
-
-        <div class="relative h-96 w-full">
-            <canvas id="approvalChart"></canvas>
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Chart
-        const ctx = document.getElementById('approvalChart').getContext('2d');
-        // Gunakan JSON.parse dengan single quotes untuk menghindari error syntax highlighter/linter
-        const chartData = JSON.parse('{!! json_encode($chartData, JSON_HEX_APOS) !!}');
-        
-        // Dark Mode Detection for Chart Theme
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof Chart === 'undefined') return;
+
         const isDarkMode = document.documentElement.classList.contains('dark');
-        
-        // Colors
-        const colors = {
-            simper: '#1268B3',
-            ujsimp: '#F47920',
-            checkup: '#10B981',
-            ranmor: '#8B5CF6'
+        const gridColor = isDarkMode ? 'rgba(55, 65, 81, 0.3)' : 'rgba(229, 231, 235, 0.8)';
+        const tickColor = isDarkMode ? '#9ca3af' : '#6b7280';
+        const legendColor = isDarkMode ? '#e5e7eb' : '#4b5563';
+
+        // Read data from DOM attributes to avoid linter errors with Blade syntax
+        const dataContainer = document.getElementById('dashboard-chart-data');
+        if (!dataContainer) return;
+
+        const chartSubmitted = JSON.parse(dataContainer.dataset.submitted || '{}');
+        const chartPending = JSON.parse(dataContainer.dataset.pending || '{}');
+        const chartVerificationResult = JSON.parse(dataContainer.dataset.verification || '{}');
+
+        const buildLineDatasets = (datasets) => datasets.map((d) => ({
+            label: d.label,
+            data: d.data,
+            borderColor: d.color,
+            backgroundColor: d.color,
+            borderWidth: 2,
+            tension: 0,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: d.color,
+            pointHoverBackgroundColor: d.color,
+            pointHoverBorderColor: '#fff',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            fill: false,
+        }));
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 12, family: "'Inter', sans-serif", weight: '600' },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20,
+                        color: legendColor,
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: isDarkMode ? '#f9fafb' : '#111827',
+                    bodyColor: isDarkMode ? '#e5e7eb' : '#4b5563',
+                    borderColor: isDarkMode ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    boxPadding: 6,
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: tickColor, font: { size: 11 } },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, precision: 0, font: { size: 11 } },
+                }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false },
         };
 
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [
-                    {
-                        label: 'SIMPER',
-                        data: chartData.simper,
-                        borderColor: colors.simper,
-                        backgroundColor: colors.simper,
-                        borderWidth: 2,
-                        tension: 0,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: colors.simper,
-                        pointHoverBackgroundColor: colors.simper,
-                        pointHoverBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: false
-                    },
-                    {
-                        label: 'UJSIMP',
-                        data: chartData.ujsimp,
-                        borderColor: colors.ujsimp,
-                        backgroundColor: colors.ujsimp,
-                        borderWidth: 2,
-                        tension: 0,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: colors.ujsimp,
-                        pointHoverBackgroundColor: colors.ujsimp,
-                        pointHoverBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: false
-                    },
-                    {
-                        label: 'CheckUp',
-                        data: chartData.checkup,
-                        borderColor: colors.checkup,
-                        backgroundColor: colors.checkup,
-                        borderWidth: 2,
-                        tension: 0,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: colors.checkup,
-                        pointHoverBackgroundColor: colors.checkup,
-                        pointHoverBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: false
-                    },
-                    {
-                        label: 'RANMOR',
-                        data: chartData.ranmor,
-                        borderColor: colors.ranmor,
-                        backgroundColor: colors.ranmor,
-                        borderWidth: 2,
-                        tension: 0,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: colors.ranmor,
-                        pointHoverBackgroundColor: colors.ranmor,
-                        pointHoverBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
+        const submittedCtx = document.getElementById('chartSubmitted');
+        if (submittedCtx) {
+            new Chart(submittedCtx, {
+                type: 'line',
+                data: {
+                    labels: chartSubmitted.labels,
+                    datasets: buildLineDatasets(chartSubmitted.datasets),
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            color: isDarkMode ? '#94a3b8' : '#64748b'
-                        }
+                options: commonOptions,
+            });
+        }
+
+        const pendingCtx = document.getElementById('chartPending');
+        if (pendingCtx) {
+            new Chart(pendingCtx, {
+                type: 'line',
+                data: {
+                    labels: chartPending.labels,
+                    datasets: buildLineDatasets(chartPending.datasets),
+                },
+                options: commonOptions,
+            });
+        }
+
+        const resultCtx = document.getElementById('chartVerificationResult');
+        if (resultCtx) {
+            new Chart(resultCtx, {
+                type: 'bar',
+                data: {
+                    labels: chartVerificationResult.labels,
+                    datasets: [{
+                        label: 'Total',
+                        data: chartVerificationResult.data,
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        borderRadius: 8,
+                    }],
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        legend: { display: false },
+                        tooltip: commonOptions.plugins.tooltip,
                     },
-                    tooltip: {
-                        backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        titleColor: isDarkMode ? '#f8fafc' : '#1e293b',
-                        bodyColor: isDarkMode ? '#f8fafc' : '#334155',
-                        borderColor: isDarkMode ? '#334155' : '#e2e8f0',
-                        borderWidth: 1,
-                        padding: 12,
-                        cornerRadius: 8,
-                        displayColors: true,
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += context.parsed.y + ' Pengajuan';
-                                }
-                                return label;
-                            }
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { size: 12, weight: '600' } },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: { color: tickColor, precision: 0, font: { size: 11 } },
                         }
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Jumlah Pengajuan',
-                            color: isDarkMode ? '#94a3b8' : '#64748b'
-                        },
-                        grid: {
-                            color: isDarkMode ? '#334155' : '#e2e8f0',
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            color: isDarkMode ? '#94a3b8' : '#64748b',
-                            stepSize: 1
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: isDarkMode ? '#94a3b8' : '#64748b',
-                            maxTicksLimit: 10
-                        }
-                    }
-                }
-            }
-        });
+            });
+        }
     });
 </script>
-@endsection
+@endpush

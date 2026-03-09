@@ -1,128 +1,235 @@
-<aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-       class="fixed md:sticky top-0 left-0 h-screen w-64 bg-white dark:bg-night-card border-r border-gray-200 dark:border-night-border flex flex-col z-50 sidebar-transition shadow-lg md:shadow-none">
-    
-    <!-- Logo Section -->
-    <div class="px-6 py-6 border-b border-gray-100 dark:border-night-border flex items-center justify-between">
-        <div>
-            <h2 class="text-xl font-extrabold tracking-tight text-secondary dark:text-blue-400">VAR SYSTEM</h2>
-            <p class="text-[10px] font-bold text-primary dark:text-orange-400 tracking-widest mt-1">
-                @if(Auth::user()->role === 'admin')
-                    ADMINISTRATOR
-                @elseif(Auth::user()->role === 'petugas')
-                    PETUGAS LAPANGAN
-                @else
-                    VIEWER / KARYAWAN
-                @endif
-            </p>
+<div class="sidebar-ui">
+    <div class="sidebar-header">
+        <div class="sidebar-brand-icon">
+            V
         </div>
-        <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
+        <div class="sidebar-brand-text">
+            VAR APP
+        </div>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        
-        @php
-            $role = Auth::user()->role;
-            $prefix = $role === 'admin' ? 'admin' : ($role === 'petugas' ? 'petugas' : 'viewer');
-        @endphp
-
-        <a href="{{ route($prefix . '.dashboard') }}"
-           class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-           {{ request()->routeIs($prefix . '.dashboard') 
-              ? 'bg-gradient-to-r from-secondary to-blue-600 text-white shadow-md' 
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-secondary dark:hover:text-blue-400' }}">
-            <svg class="w-5 h-5 mr-3 {{ request()->routeIs($prefix . '.dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-secondary dark:group-hover:text-blue-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-            Dashboard
+    <div class="sidebar-content">
+        {{-- DASHBOARD (ALL) --}}
+        <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <div class="sidebar-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <span class="sidebar-label">Dashboard</span>
         </a>
 
-        <div class="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center">
-            <span class="w-full border-t border-gray-200 dark:border-gray-700 mr-2"></span>
-            <span>{{ $role === 'admin' ? 'Approval' : ($role === 'petugas' ? 'Modul Input' : 'Dokumen Saya') }}</span>
-            <span class="w-full border-t border-gray-200 dark:border-gray-700 ml-2"></span>
-        </div>
-
-        <!-- SIMPER Link -->
-        <a href="{{ route($prefix . '.simper.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-           {{ request()->routeIs($prefix . '.simper.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-secondary dark:text-blue-400 font-semibold border-l-4 border-secondary' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            SIMPER
-        </a>
-
-        <!-- UJSIMP Link -->
-        <a href="{{ route($prefix . '.ujsimp.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-           {{ request()->routeIs($prefix . '.ujsimp.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-secondary dark:text-blue-400 font-semibold border-l-4 border-secondary' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-            UJSIMP
-        </a>
-
-        <!-- CHECKUP Link -->
-        <a href="{{ route($prefix . '.checkup.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-           {{ request()->routeIs($prefix . '.checkup.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-secondary dark:text-blue-400 font-semibold border-l-4 border-secondary' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            CheckUp Kendaraan
-        </a>
-
-        <!-- RANMOR Link -->
-        <a href="{{ route($prefix . '.ranmor.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-           {{ request()->routeIs($prefix . '.ranmor.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-secondary dark:text-blue-400 font-semibold border-l-4 border-secondary' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            RANMOR
-        </a>
-    </nav>
-
-    <!-- Bottom Section: User & Theme -->
-    <div class="p-4 border-t border-gray-200 dark:border-night-border bg-gray-50 dark:bg-night-card/50">
-        
-        <!-- Theme Toggle Professional Switch -->
-        <div class="flex items-center justify-between mb-4 bg-gray-200 dark:bg-gray-700 rounded-full p-1 relative">
-            <div class="w-1/2 h-full absolute top-0 left-0 bg-white dark:bg-gray-600 rounded-full shadow-sm transition-transform duration-300"
-                 :class="darkMode ? 'translate-x-full' : 'translate-x-0'"></div>
+        {{-- SUPER ADMIN MENU --}}
+        @if(Auth::user()->role === 'super_admin')
+            <div class="sidebar-section-title">Super Admin</div>
             
-            <button @click="darkMode = false; localStorage.setItem('theme', 'light'); document.documentElement.classList.remove('dark')"
-                    class="flex-1 relative z-10 flex items-center justify-center py-1.5 text-xs font-bold transition-colors duration-300"
-                    :class="!darkMode ? 'text-primary' : 'text-gray-500'">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                DAY
-            </button>
+            <a href="{{ route('super-admin.dashboard') }}" class="sidebar-item {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Dashboard SA</span>
+            </a>
+            <a href="{{ route('super-admin.tokens.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.tokens.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                </div>
+                <span class="sidebar-label">Token Management</span>
+            </a>
+            <a href="{{ route('super-admin.users.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.users.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <span class="sidebar-label">User Management</span>
+            </a>
+            <a href="{{ route('super-admin.monitoring.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.monitoring.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <span class="sidebar-label">System Monitoring</span>
+            </a>
+
+            <div class="sidebar-section-title">Master Data</div>
             
-            <button @click="darkMode = true; localStorage.setItem('theme', 'dark'); document.documentElement.classList.add('dark')"
-                    class="flex-1 relative z-10 flex items-center justify-center py-1.5 text-xs font-bold transition-colors duration-300"
-                    :class="darkMode ? 'text-blue-400' : 'text-gray-500'">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                NIGHT
-            </button>
-        </div>
-
-        <!-- User Dropdown (Sidebar Integrated) -->
-        <div x-data="{ userMenuOpen: false }" class="relative">
-            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center w-full hover:bg-white dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
-                <div class="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-sm">
-                    {{ substr(Auth::user()->name, 0, 1) }}
+            <a href="{{ route('super-admin.companies.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.companies.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="2" x2="9" y2="2.01"></line><line x1="15" y1="2" x2="15" y2="2.01"></line></svg>
                 </div>
-                <div class="ml-3 text-left flex-1 overflow-hidden">
-                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                <span class="sidebar-label">Companies</span>
+            </a>
+            <a href="{{ route('super-admin.zones.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.zones.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
                 </div>
-                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="userMenuOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
+                <span class="sidebar-label">Zones</span>
+            </a>
+            
+            <a href="{{ route('super-admin.master.simper.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.master.simper.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Master SIMPER</span>
+            </a>
+            <a href="{{ route('super-admin.master.ujsimp.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.master.ujsimp.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Master UJSIMP</span>
+            </a>
+            <a href="{{ route('super-admin.master.checkup.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.master.checkup.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Master Checkup</span>
+            </a>
+            <a href="{{ route('super-admin.master.ranmor.index') }}" class="sidebar-item {{ request()->routeIs('super-admin.master.ranmor.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Master Ranmor</span>
+            </a>
+        @endif
 
-            <div x-show="userMenuOpen" x-collapse class="mt-2 pl-2 space-y-1">
-                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-secondary dark:hover:text-blue-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-                    Profile Settings
-                </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md">
-                        Sign Out
-                    </button>
-                </form>
+        {{-- ADMIN MENU --}}
+        @if(in_array(Auth::user()->role, ['admin', 'admin_perijinan']))
+            <div class="sidebar-section-title">Admin Menu</div>
+            
+            <a href="{{ route('admin.tokens.index') }}" class="sidebar-item {{ request()->routeIs('admin.tokens.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                </div>
+                <span class="sidebar-label">Tokens</span>
+            </a>
+            <a href="{{ route('admin.activity-logs.index') }}" class="sidebar-item {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Activity Logs</span>
+            </a>
+
+            <div class="sidebar-section-title">Modules</div>
+
+            <a href="{{ route('admin.simper.index') }}" class="sidebar-item {{ request()->routeIs('admin.simper.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">SIMPER ({{ $pendingVerificationCounts['simper'] ?? 0 }})</span>
+            </a>
+            <a href="{{ route('admin.ujsimp.index') }}" class="sidebar-item {{ request()->routeIs('admin.ujsimp.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">UJSIMP ({{ $pendingVerificationCounts['ujsimp'] ?? 0 }})</span>
+            </a>
+            <a href="{{ route('admin.checkup.index') }}" class="sidebar-item {{ request()->routeIs('admin.checkup.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </div>
+                <span class="sidebar-label">Checklist ({{ $pendingVerificationCounts['checkup'] ?? 0 }})</span>
+            </a>
+            <a href="{{ route('admin.ranmor.index') }}" class="sidebar-item {{ request()->routeIs('admin.ranmor.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </div>
+                <span class="sidebar-label">Ranmor ({{ $pendingVerificationCounts['ranmor'] ?? 0 }})</span>
+            </a>
+        @endif
+
+        {{-- PETUGAS MENU --}}
+        @if(in_array(Auth::user()->role, ['petugas', 'checker_lapangan']))
+            <div class="sidebar-section-title">Petugas Menu</div>
+            
+            <a href="{{ route('petugas.simper.index') }}" class="sidebar-item {{ request()->routeIs('petugas.simper.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">SIMPER</span>
+            </a>
+            <a href="{{ route('petugas.ujsimp.index') }}" class="sidebar-item {{ request()->routeIs('petugas.ujsimp.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">UJSIMP</span>
+            </a>
+            <a href="{{ route('petugas.checkup.index') }}" class="sidebar-item {{ request()->routeIs('petugas.checkup.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </div>
+                <span class="sidebar-label">Checkup</span>
+            </a>
+            <a href="{{ route('petugas.ranmor.index') }}" class="sidebar-item {{ request()->routeIs('petugas.ranmor.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </div>
+                <span class="sidebar-label">Ranmor</span>
+            </a>
+        @endif
+
+        {{-- AVP MENU --}}
+        @if(Auth::user()->role === 'avp')
+            <div class="sidebar-section-title">AVP Menu</div>
+            
+            <a href="{{ route('avp.approval-queue') }}" class="sidebar-item {{ request()->routeIs('avp.approval-queue*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Approval Queue</span>
+            </a>
+            <a href="{{ route('avp.approval-history') }}" class="sidebar-item {{ request()->routeIs('avp.approval-history*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <span class="sidebar-label">Approval History</span>
+            </a>
+        @endif
+
+        {{-- VIEWER MENU --}}
+        @if(in_array(Auth::user()->role, ['viewer', 'user']))
+            <div class="sidebar-section-title">Viewer Menu</div>
+            
+            <a href="{{ route('viewer.simper.index') }}" class="sidebar-item {{ request()->routeIs('viewer.simper.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">SIMPER</span>
+            </a>
+            <a href="{{ route('viewer.ujsimp.index') }}" class="sidebar-item {{ request()->routeIs('viewer.ujsimp.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <span class="sidebar-label">UJSIMP</span>
+            </a>
+            <a href="{{ route('viewer.checkup.index') }}" class="sidebar-item {{ request()->routeIs('viewer.checkup.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </div>
+                <span class="sidebar-label">Checkup</span>
+            </a>
+            <a href="{{ route('viewer.ranmor.index') }}" class="sidebar-item {{ request()->routeIs('viewer.ranmor.*') ? 'active' : '' }}">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </div>
+                <span class="sidebar-label">Ranmor</span>
+            </a>
+        @endif
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">
+                {{ substr(Auth::user()->name, 0, 1) }}
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{ Auth::user()->name }}</div>
+                <div class="user-role">{{ Auth::user()->role }}</div>
             </div>
         </div>
+        
+        <form method="POST" action="{{ route('logout') }}" class="mt-2">
+            @csrf
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();" class="sidebar-item" style="color: var(--color-danger);">
+                <div class="sidebar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </div>
+                <span class="sidebar-label">Logout</span>
+            </a>
+        </form>
     </div>
-</aside>
+</div>

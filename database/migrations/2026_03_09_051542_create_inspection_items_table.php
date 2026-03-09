@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('inspection_items', function (Blueprint $table) {
+            $table->id();
+            $table->string('module')->index(); // checkup, ujsimp, simper, ranmor
+            $table->string('kategori')->nullable();
+            $table->integer('urutan')->default(0);
+            $table->text('uraian');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('inspection_items');
+    }
+};

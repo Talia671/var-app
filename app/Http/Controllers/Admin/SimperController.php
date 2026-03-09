@@ -4,35 +4,55 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Simper\SimperDocument;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class SimperController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SimperDocument::query()->latest();
+        $query = SimperDocument::query()
+            ->where('workflow_status', 'submitted')
+            ->with('checker');
 
-        // Ambil status dari query string
-        $status = $request->input('status', 'all');
-
-        // Filter hanya jika bukan 'all'
-        if ($status !== 'all') {
-            $query->where('status', $status);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('npk', 'like', "%{$search}%")
+                    ->orWhere('zona', 'like', "%{$search}%")
+                    ->orWhereHas('checker', function ($qc) use ($search) {
+                        $qc->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
-        $assessments = $query->paginate(10);
+        if ($request->filled('zona')) {
+            $zona = $request->zona;
+            if ($zona === 'zona1') {
+                $query->where('zona', 'like', '%1%');
+            } elseif ($zona === 'zona2') {
+                $query->where('zona', 'like', '%2%');
+            } else {
+                $query->where('zona', $zona);
+            }
+        }
 
-        return view('admin.simper.index', [
-            'assessments'   => $assessments,
-            'currentStatus' => $status
-        ]);
+        $sort = $request->input('sort', 'terbaru');
+        $sort = in_array($sort, ['terbaru', 'terlama'], true) ? $sort : 'terbaru';
+        $query->orderBy('created_at', $sort === 'terlama' ? 'asc' : 'desc');
+
+        $assessments = $query->paginate(15)->withQueryString();
+
+        return view('admin.simper.index', compact('assessments', 'sort'));
     }
 
     public function show($id)
     {
-        $assessment = SimperDocument::with('notes')->findOrFail($id);
+        $assessment = SimperDocument::with('notes')
+            ->whereIn('workflow_status', ['submitted', 'verified', 'rejected'])
+            ->findOrFail($id);
 
         return view('admin.simper.show', compact('assessment'));
     }
@@ -40,40 +60,40 @@ class SimperController extends Controller
     public function approve($id)
     {
         $assessment = SimperDocument::findOrFail($id);
-
-        if ($assessment->status !== 'pending') {
-            return back()->with('error', 'Data sudah diproses.');
+        if ($assessment->workflow_status !== 'submitted') {
+            abort(403);
         }
 
-        $assessment->update([
-            'status' => 'approved',
-            'approved_by' => Auth::user()->id,
-            'approved_at' => now(),
-        ]);
+        $assessment->workflow_status = 'verified';
+        $assessment->verified_by = Auth::id();
+        $assessment->verified_at = now();
+        $assessment->save();
 
-        return back()->with('success', 'SIMPER berhasil disetujui.');
+        \App\Models\ActivityLog::log('exam_verified', 'simper', "Admin Verified SIMPER for {$assessment->nama} (ID: {$assessment->id})");
+
+        return redirect()
+            ->route('admin.simper.index')
+            ->with('success', 'Dokumen berhasil diverifikasi.');
     }
 
     public function reject(Request $request, $id)
     {
-        $request->validate([
-            'rejected_reason' => 'required|string'
-        ]);
-
         $assessment = SimperDocument::findOrFail($id);
-
-        if ($assessment->status !== 'pending') {
-            return back()->with('error', 'Data sudah diproses.');
+        if ($assessment->workflow_status !== 'submitted') {
+            abort(403);
         }
 
-        $assessment->update([
-            'status' => 'rejected',
-            'rejected_by' => Auth::user()->id,
-            'rejected_at' => now(),
-            'rejected_reason' => $request->rejected_reason
-        ]);
+        $assessment->workflow_status = 'rejected';
+        $assessment->rejected_by = Auth::id();
+        $assessment->rejected_at = now();
+        $assessment->rejected_reason = $request->input('rejected_reason');
+        $assessment->save();
 
-        return back()->with('success', 'SIMPER ditolak.');
+        \App\Models\ActivityLog::log('exam_rejected', 'simper', "Admin Rejected SIMPER for {$assessment->nama} (ID: {$assessment->id})");
+
+        return redirect()
+            ->route('admin.simper.index')
+            ->with('success', 'Dokumen ditolak.');
     }
 
     public function exportPdf($id)

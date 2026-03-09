@@ -3,74 +3,72 @@
 namespace App\Http\Controllers\Viewer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Simper\SimperDocument;
-use App\Models\Ujsimp\UjsimpTest;
 use App\Models\Checkup\CheckupDocument;
 use App\Models\Ranmor\RanmorDocument;
+use App\Models\Simper\SimperDocument;
+use App\Models\Ujsimp\UjsimpTest;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    private function applySecurityFilter($query, $nameColumn = 'nama')
+    {
+        $user = Auth::user();
+        return $query->where(function ($q) use ($user, $nameColumn) {
+            if ($user->security_code) {
+                $q->where('security_code', $user->security_code);
+            }
+            // Fallback for legacy documents
+            $q->orWhere(function ($sub) use ($user, $nameColumn) {
+                $sub->whereNull('security_code')
+                    ->where($nameColumn, $user->name);
+            });
+        });
+    }
+
     public function index()
     {
-        $userName = Auth::user()->name;
-
-        $totalSimper = SimperDocument::where('workflow_status', 'approved')
-            ->where('nama', $userName)
-            ->count();
-            
-        $totalUjsimp = UjsimpTest::where('workflow_status', 'approved')
-            ->where('nama', $userName)
-            ->count();
-            
-        $totalCheckup = CheckupDocument::where('workflow_status', 'approved')
-            ->where('nama_pengemudi', $userName)
-            ->count();
-            
-        $totalRanmor = RanmorDocument::where('workflow_status', 'approved')
-            ->where('pengemudi', $userName)
-            ->count();
+        $totalSimper = $this->applySecurityFilter(SimperDocument::where('workflow_status', 'approved'), 'nama')->count();
+        $totalUjsimp = $this->applySecurityFilter(UjsimpTest::where('workflow_status', 'approved'), 'nama')->count();
+        $totalCheckup = $this->applySecurityFilter(CheckupDocument::where('workflow_status', 'approved'), 'nama_pengemudi')->count();
+        $totalRanmor = $this->applySecurityFilter(RanmorDocument::where('workflow_status', 'approved'), 'pengemudi')->count();
 
         return view('viewer.dashboard', compact('totalSimper', 'totalUjsimp', 'totalCheckup', 'totalRanmor'));
     }
 
     public function simper()
     {
-        $userName = Auth::user()->name;
-        $documents = SimperDocument::where('workflow_status', 'approved')
-            ->where('nama', $userName)
+        $documents = $this->applySecurityFilter(SimperDocument::where('workflow_status', 'approved'), 'nama')
             ->latest()
-            ->get();
+            ->paginate(15);
+
         return view('viewer.simper.index', compact('documents'));
     }
 
     public function ujsimp()
     {
-        $userName = Auth::user()->name;
-        $documents = UjsimpTest::where('workflow_status', 'approved')
-            ->where('nama', $userName)
+        $documents = $this->applySecurityFilter(UjsimpTest::where('workflow_status', 'approved'), 'nama')
             ->latest()
-            ->get();
+            ->paginate(15);
+
         return view('viewer.ujsimp.index', compact('documents'));
     }
 
     public function checkup()
     {
-        $userName = Auth::user()->name;
-        $documents = CheckupDocument::where('workflow_status', 'approved')
-            ->where('nama_pengemudi', $userName)
+        $documents = $this->applySecurityFilter(CheckupDocument::where('workflow_status', 'approved'), 'nama_pengemudi')
             ->latest()
-            ->get();
+            ->paginate(15);
+
         return view('viewer.checkup.index', compact('documents'));
     }
 
     public function ranmor()
     {
-        $userName = Auth::user()->name;
-        $documents = RanmorDocument::where('workflow_status', 'approved')
-            ->where('pengemudi', $userName)
+        $documents = $this->applySecurityFilter(RanmorDocument::where('workflow_status', 'approved'), 'pengemudi')
             ->latest()
-            ->get();
+            ->paginate(15);
+
         return view('viewer.ranmor.index', compact('documents'));
     }
 }

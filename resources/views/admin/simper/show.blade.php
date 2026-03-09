@@ -2,6 +2,128 @@
 
 @section('content')
 
+<style>
+    :root {
+        --primary-blue: #0d47a1;
+        --accent-yellow: #ffc107;
+        --soft-bg: #f4f6f9;
+    }
+
+    body {
+        background: var(--soft-bg);
+    }
+
+    .simper-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 50px 20px;
+    }
+
+    .simper-title {
+        text-align: center;
+        font-weight: 700;
+        font-size: 22px;
+        margin: 30px 0 35px 0;
+        color: var(--primary-blue);
+        letter-spacing: 1px;
+    }
+
+    .simper-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .simper-table td {
+        border: 1px solid #dee2e6;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .simper-table .label {
+        width: 40%;
+    }
+
+    .note-title {
+        margin-top: 25px;
+        font-weight: 600;
+        color: var(--primary-blue);
+        border-left: 4px solid var(--accent-yellow);
+        padding-left: 10px;
+        margin-bottom: 10px;
+    }
+
+    .note-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .note-table th {
+        background: var(--primary-blue);
+        color: white;
+        padding: 8px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .note-table td {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .signature-section {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        text-align: center;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .signature-section strong {
+        color: var(--primary-blue);
+    }
+
+    .simper-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 18px;
+        border-bottom: 2px solid var(--primary-blue);
+    }
+
+    .simper-header div {
+        display: flex;
+        justify-content: center;
+    }
+
+    .simper-header img {
+        height: 70px;
+        width: 70px;
+        object-fit: contain;
+    }
+
+    .simper-container {
+        width: 100%;
+        max-width: 950px;
+        background: white;
+        padding: 50px 60px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        border-top: 6px solid var(--primary-blue);
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+    }
+</style>
+
 <!-- TOP NAVIGATION -->
 <div class="flex justify-between items-center mb-6">
     <a href="{{ route('admin.simper.index') }}" 
@@ -17,179 +139,159 @@
     </a>
 </div>
 
-<!-- DOCUMENT PREVIEW (MIMIC PDF) -->
-<div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-8 max-w-4xl mx-auto">
-    <div class="p-8 md:p-12">
-        
-        <!-- HEADER LOGOS -->
-        <div class="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
-            <div class="w-1/3">
-                <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT" class="h-16">
-            </div>
-            <div class="w-1/3 flex justify-center">
-                <!-- Assuming logo-satpam exists, otherwise placeholder -->
-                <div class="text-center font-bold text-gray-800 dark:text-white">SATUAN PENGAMANAN</div>
-            </div>
-            <div class="w-1/3 flex flex-col items-end">
-                <img src="{{ asset('assets/images/logo-k3.svg') }}" alt="Logo K3" class="h-16 mb-1">
-                <span class="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-1 border border-gray-400">TES PRAKTEK</span>
-            </div>
-        </div>
+@if($assessment->workflow_status === 'submitted')
+<div class="flex justify-end gap-3 mb-6">
+    <form action="{{ route('admin.simper.approve', $assessment->id) }}" method="POST" onsubmit="return confirm('Verifikasi dokumen ini?')">
+        @csrf
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-secondary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
+            Verify
+        </button>
+    </form>
 
-        <!-- TITLE -->
-        <div class="text-center mb-8">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white uppercase decoration-2 underline underline-offset-4">HASIL UJIAN PRAKTEK SIMPER / SIOPER</h1>
-        </div>
-
-        <!-- FORM DATA -->
-        <div class="grid grid-cols-1 gap-y-4 text-sm text-gray-800 dark:text-gray-200 mb-8">
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">LOKASI KERJA (ZONASI)</div>
-                <div class="col-span-2 flex items-center gap-8">
-                    <label class="flex items-center space-x-2">
-                        <span class="w-4 h-4 border border-gray-400 flex items-center justify-center">
-                            {{ str_contains($assessment->zona, '1') ? '✓' : '' }}
-                        </span>
-                        <span>ZONA 1</span>
-                    </label>
-                    <label class="flex items-center space-x-2">
-                        <span class="w-4 h-4 border border-gray-400 flex items-center justify-center">
-                            {{ str_contains($assessment->zona, '2') ? '✓' : '' }}
-                        </span>
-                        <span>ZONA 2</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">NAMA</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->nama }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">NPK / NOMOR BADGE</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->npk }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">PERUSAHAAN / DEPT</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->perusahaan }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">JENIS KENDARAAN / ALBET</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->jenis_kendaraan }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">NOMOR SIM / SIO</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->nomor_sim }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">JENIS SIM / SIO</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->jenis_sim }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">JENIS SIMPER / SIOPER</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->jenis_simper }}</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
-                <div class="font-bold">TANGGAL DIUJI</div>
-                <div class="col-span-2 uppercase">: {{ $assessment->tanggal_uji ? \Carbon\Carbon::parse($assessment->tanggal_uji)->format('d F Y') : '-' }}</div>
-            </div>
-        </div>
-
-        <!-- NOTES SECTION -->
-        <div class="mb-8">
-            <div class="bg-gray-100 dark:bg-gray-700 text-center font-bold py-2 mb-4 text-sm uppercase text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
-                YANG PERLU DILATIH ATAU DIPERBAIKI
-            </div>
-            
-            <table class="w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm">
-                <thead>
-                    <tr class="bg-gray-50 dark:bg-gray-700">
-                        <th class="border border-gray-300 dark:border-gray-600 p-2 w-12 text-center text-gray-800 dark:text-gray-200">NO</th>
-                        <th class="border border-gray-300 dark:border-gray-600 p-2 text-left text-gray-800 dark:text-gray-200">URAIAN</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($assessment->notes as $i => $note)
-                    <tr>
-                        <td class="border border-gray-300 dark:border-gray-600 p-2 text-center text-gray-700 dark:text-gray-300">{{ $i+1 }}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300">{{ $note->description }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td class="border border-gray-300 dark:border-gray-600 p-2 text-center text-gray-700 dark:text-gray-300">-</td>
-                        <td class="border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 italic text-center">Tidak ada catatan</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- SIGNATURE SECTION (MODIFIED) -->
-        <div class="grid grid-cols-2 gap-8 mt-12 text-center">
-            <!-- Penguji -->
-            <div>
-                <div class="font-bold text-gray-800 dark:text-gray-200 mb-16">PENGUJI</div>
-                <div class="text-sm">
-                    <div class="font-bold text-gray-900 dark:text-white uppercase underline">{{ $assessment->penguji_nama ?? '(.......................)' }}</div>
-                    <div class="text-gray-600 dark:text-gray-400 mt-1">NPK: {{ $assessment->penguji_npk ?? '..........' }}</div>
-                </div>
-            </div>
-
-            <!-- User -->
-            <div>
-                <div class="font-bold text-gray-800 dark:text-gray-200 mb-16">USER / PEMOHON</div>
-                <div class="text-sm">
-                    <div class="font-bold text-gray-900 dark:text-white uppercase underline">{{ $assessment->nama }}</div>
-                    <div class="text-gray-600 dark:text-gray-400 mt-1">Badge No: {{ $assessment->npk }}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- FOOTER INFO -->
-        <div class="mt-12 text-right text-xs text-gray-500">
-            No. Dokumen: SIMPER/PKT/{{ date('Y') }}/{{ str_pad($assessment->id,4,'0',STR_PAD_LEFT) }}
-        </div>
-    </div>
+    <form action="{{ route('admin.simper.reject', $assessment->id) }}" method="POST" onsubmit="return confirm('Tolak dokumen ini?')">
+        @csrf
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
+            Reject
+        </button>
+    </form>
 </div>
-
-<!-- ACTION BUTTONS -->
-@if($assessment->status == 'pending')
-<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-    <!-- APPROVE FORM -->
-    <form action="{{ route('admin.simper.approve', $assessment->id) }}" method="POST" class="w-full">
-        @csrf
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-            <h4 class="text-lg font-bold text-green-700 dark:text-green-400 mb-2">Setujui Pengajuan</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Pastikan data sudah benar sebelum menyetujui.</p>
-            <button type="submit" class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow transition-transform transform hover:scale-[1.02]">
-                ✓ Approve Document
-            </button>
-        </div>
-    </form>
-
-    <!-- REJECT FORM -->
-    <form action="{{ route('admin.simper.reject', $assessment->id) }}" method="POST" class="w-full">
-        @csrf
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border-l-4 border-red-500">
-            <h4 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">Tolak Pengajuan</h4>
-            <input type="text" 
-                   name="rejected_reason" 
-                   placeholder="Masukkan alasan penolakan..."
-                   required
-                   class="w-full mb-4 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white">
-            <button type="submit" class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow transition-transform transform hover:scale-[1.02]">
-                ✕ Reject Document
-            </button>
-        </div>
-    </form>
+@elseif($assessment->workflow_status === 'verified')
+<div class="flex justify-end mb-6">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+        Verified
+    </span>
+</div>
+@elseif($assessment->workflow_status === 'rejected')
+<div class="flex justify-end mb-6">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
+        Rejected
+    </span>
 </div>
 @endif
+
+<div class="simper-wrapper">
+    <div class="simper-container">
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: -20px;">
+        @if($assessment->workflow_status == 'draft')
+            <span style="background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #d1d5db; text-transform: uppercase;">Draft Mode</span>
+        @elseif($assessment->workflow_status == 'submitted')
+            <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #fcd34d; text-transform: uppercase;">Submitted for Verification</span>
+        @elseif($assessment->workflow_status == 'verified')
+            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #bae6fd; text-transform: uppercase;">Verified</span>
+        @elseif($assessment->workflow_status == 'approved')
+            <span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #6ee7b7; text-transform: uppercase;">Approved</span>
+        @elseif($assessment->workflow_status == 'rejected')
+            <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #fca5a5; text-transform: uppercase;">Rejected / Revision Required</span>
+        @endif
+    </div>
+
+    <div class="simper-header">
+        <div class="logo-left">
+            <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT">
+        </div>
+
+        <div class="logo-center">
+            <img src="{{ asset('assets/images/logo-k3.svg') }}" alt="Logo K3">
+        </div>
+
+        <div class="logo-right">
+            <img src="{{ asset('assets/images/logo-satpam.svg') }}" alt="Logo Satpam">
+        </div>
+    </div>
+
+    <div class="simper-title">
+        HASIL UJIAN PRAKTEK SIMPER / SIOPER
+    </div>
+
+    <table class="simper-table">
+        <tr>
+            <td class="label">Lokasi Kerja (Zonasi)</td>
+            <td>
+                Zona 1 
+                @if(str_contains($assessment->zona, '1')) ☑ @else ☐ @endif
+                &nbsp;&nbsp;&nbsp;
+                Zona 2 
+                @if(str_contains($assessment->zona, '2')) ☑ @else ☐ @endif
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Nama</td>
+            <td>{{ $assessment->nama }}</td>
+        </tr>
+        <tr>
+            <td class="label">NPK / Nomor Badge</td>
+            <td>{{ $assessment->npk }}</td>
+        </tr>
+        <tr>
+            <td class="label">Perusahaan / Dept</td>
+            <td>{{ $assessment->perusahaan }}</td>
+        </tr>
+        <tr>
+            <td class="label">Jenis Kendaraan / Alat</td>
+            <td>{{ $assessment->jenis_kendaraan }}</td>
+        </tr>
+        <tr>
+            <td class="label">Nomor SIM / SIO</td>
+            <td>{{ $assessment->nomor_sim }}</td>
+        </tr>
+        <tr>
+            <td class="label">Jenis SIM / SIO</td>
+            <td>{{ $assessment->jenis_sim }}</td>
+        </tr>
+        <tr>
+            <td class="label">Jenis SIMPER</td>
+            <td>{{ $assessment->jenis_simper }}</td>
+        </tr>
+        <tr>
+            <td class="label">Tanggal Diuji</td>
+            <td>{{ $assessment->tanggal_uji ? \Carbon\Carbon::parse($assessment->tanggal_uji)->format('d F Y') : '-' }}</td>
+        </tr>
+    </table>
+
+    <div class="note-title">
+        YANG PERLU DILATIH ATAU DIPERBAIKI
+    </div>
+
+    <table class="note-table">
+        <thead>
+            <tr>
+                <th width="10%">No</th>
+                <th>Uraian</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($assessment->notes as $note)
+                <tr>
+                    <td>{{ $note->no_urut }}</td>
+                    <td>{{ $note->uraian ?? $note->description }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="2" style="text-align: center;">Tidak ada catatan</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="signature-section">
+        <div>
+            <strong>Admin Perizinan</strong><br><br><br>
+            {{ optional($assessment->verifier)->name ?? '..........................' }}
+        </div>
+
+        <div>
+            <strong>AVP</strong><br><br><br>
+            {{ optional($assessment->approver)->name ?? '..........................' }}
+        </div>
+
+        <div>
+            <strong>Checker</strong><br><br><br>
+            {{ $assessment->penguji_nama ?? '..........................' }}
+        </div>
+    </div>
+
+    </div>
+</div>
 
 @endsection

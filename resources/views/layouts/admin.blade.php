@@ -1,4 +1,4 @@
-@extends('layouts.app-master')
+@extends('layouts.app')
 
 @section('title', 'Admin Panel - VAR APP')
 

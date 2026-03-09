@@ -12,10 +12,27 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
+    // Step 1: Account Credentials
+    Route::get('register', [RegisteredUserController::class, 'step1'])
         ->name('register');
+    Route::post('register/step1', [RegisteredUserController::class, 'storeStep1'])
+        ->name('register.step1');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // Step 2: Token Verification
+    Route::get('register/token', [RegisteredUserController::class, 'step2'])
+        ->name('register.token');
+    Route::post('register/token', [RegisteredUserController::class, 'storeStep2'])
+        ->name('register.token.store');
+
+    // Step 3: Profile Completion
+    Route::get('register/profile', [RegisteredUserController::class, 'step3'])
+        ->name('register.profile');
+    Route::post('register/profile', [RegisteredUserController::class, 'storeStep3'])
+        ->name('register.profile.store');
+
+    // Success Page
+    Route::get('register/success', [RegisteredUserController::class, 'success'])
+        ->name('register.success');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

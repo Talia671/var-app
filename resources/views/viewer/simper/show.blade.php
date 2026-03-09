@@ -2,102 +2,149 @@
 
 @section('content')
 
-<style>
-    .watermark {
-        position: fixed;
-        top: 40%;
-        left: 25%;
-        opacity: 0.05;
-        font-size: 80px;
-        transform: rotate(-30deg);
-        z-index: -1;
-    }
+<div class="document-wrapper card-ui p-8">
+    <!-- Header -->
+    <table class="w-full mb-6">
+        <tr>
+            <td width="20%">
+                <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT" style="height: 50px;">
+            </td>
+            <td width="60%" class="text-center">
+                <h1 class="document-title">FORMULIR PERMOHONAN SIMPER</h1>
+                <p class="text-sm text-gray-500">PT PUPUK KALIMANTAN TIMUR</p>
+            </td>
+            <td width="20%" class="text-right">
+                <img src="{{ asset('assets/images/logo-k3.svg') }}" alt="Logo K3" style="height: 50px;">
+            </td>
+        </tr>
+    </table>
 
-    .outer-border {
-        border: 2px solid black;
-        padding: 10px;
-    }
+    <!-- Identity -->
+    <div class="document-section">
+        <table class="w-full text-sm">
+            <tr>
+                <td width="150" class="py-1 font-semibold">Nama</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nama }}</td>
+                <td width="20"></td>
+                <td width="150" class="py-1 font-semibold">Jenis Kendaraan</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->jenis_kendaraan }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">NPK</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->npk }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Nomor SIM/SIO</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nomor_sim }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Perusahaan/Dept</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->perusahaan }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Jenis SIM/SIO</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->jenis_sim }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Lokasi Kerja</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">
+                    @if($document->zona == 'zona_1')
+                        Zona 1 (Restricted Area)
+                    @else
+                        Zona 2 (Non-Restricted Area)
+                    @endif
+                </td>
+                <td></td>
+                <td class="py-1 font-semibold">Jenis SIMPER</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300 font-bold">{{ $document->jenis_simper }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Tanggal Uji</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ \Carbon\Carbon::parse($document->tanggal_uji)->format('d F Y') }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
 
-    .header-table {
-        width: 100%;
-    }
+    <!-- Notes Table -->
+    @if(count($document->notes) > 0)
+    <div class="document-section">
+        <h3 class="font-semibold text-gray-700 mb-2">Yang Perlu Dilatih / Diperbaiki:</h3>
+        <table class="table-ui">
+            <thead>
+                <tr>
+                    <th class="w-10 text-center">No</th>
+                    <th>Uraian Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($document->notes as $index => $note)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $note }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
 
-    .header-table td {
-        vertical-align: middle;
-    }
+    <!-- Signatures -->
+    <div class="signature-grid">
+        <div>
+            <p class="text-sm mb-8">Penguji (Checker)</p>
+            <div class="signature-space">
+                @if($document->checker)
+                    <div class="text-green-600 text-xs mb-1">Digitally Signed</div>
+                    <div class="font-bold">{{ $document->checker->name }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->created_at->format('d M Y H:i') }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">{{ $document->checker->name ?? '....................' }}</div>
+        </div>
 
-    .title {
-        text-align: center;
-        font-weight: bold;
-        font-size: 14px;
-        margin: 10px 0 5px 0;
-    }
+        <div>
+            <p class="text-sm mb-8">Diverifikasi Admin</p>
+            <div class="signature-space">
+                @if($document->admin_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Verified</div>
+                    <div class="font-bold">{{ $document->admin_approver->name ?? 'Admin' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->admin_approval_date ? \Carbon\Carbon::parse($document->admin_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">Admin Perizinan</div>
+        </div>
 
-    .label-right {
-        text-align: right;
-        font-weight: bold;
-        background: #f5f5f5;
-        padding: 4px 8px;
-        border: 1px solid black;
-        display: inline-block;
-    }
-
-    .form-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 5px;
-    }
-
-    .form-table td {
-        padding: 4px;
-    }
-
-    .form-table tr td:first-child {
-        width: 45%;
-    }
-
-    .checkbox-box {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border: 1px solid black;
-        text-align: center;
-        font-size: 10px;
-        line-height: 12px;
-    }
-
-    .notes-title {
-        text-align: center;
-        font-weight: bold;
-        margin: 10px 0 5px 0;
-    }
-
-    .notes-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .notes-table th,
-    .notes-table td {
-        border: 1px solid black;
-        padding: 5px;
-    }
-
-    .notes-table th {
-        background: #efefef;
-    }
-
-    .signature-table {
-        width: 100%;
-        margin-top: 30px;
-        text-align: center;
-    }
-
-    .signature-table td {
-        width: 33%;
-        vertical-align: bottom;
-    }
-
+        <div>
+            <p class="text-sm mb-8">Disetujui AVP</p>
+            <div class="signature-space">
+                @if($document->avp_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Approved</div>
+                    <div class="font-bold">{{ $document->avp_approver->name ?? 'AVP' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->avp_approval_date ? \Carbon\Carbon::parse($document->avp_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">AVP K3</div>
+        </div>
+    </div>
+</div>
+@endsection
     .footer-doc {
         margin-top: 15px;
         font-size: 10px;

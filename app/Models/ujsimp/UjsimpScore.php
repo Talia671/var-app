@@ -3,8 +3,6 @@
 namespace App\Models\Ujsimp;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Ujsimp\UjsimpTest;
-use App\Models\Ujsimp\UjsimpItem;
 
 class UjsimpScore extends Model
 {
@@ -12,7 +10,7 @@ class UjsimpScore extends Model
         'ujsimp_test_id',
         'ujsimp_item_id',
         'nilai_huruf',
-        'nilai_angka'
+        'nilai_angka',
     ];
 
     public function test()

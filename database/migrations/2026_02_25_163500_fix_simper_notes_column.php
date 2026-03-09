@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::table('simper_notes', function (Blueprint $table) {
             // Drop old FK
             $table->dropForeign('assessment_notes_assessment_id_foreign');
-            
+
             // Rename column
             $table->renameColumn('assessment_id', 'simper_document_id');
-            
+
             // Add new FK
             $table->foreign('simper_document_id')->references('id')->on('simper_documents')->onDelete('cascade');
         });

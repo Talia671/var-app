@@ -151,6 +151,18 @@
 <div class="simper-wrapper">
     <div class="simper-container">
 
+    <div style="display: flex; justify-content: flex-end; margin-bottom: -20px;">
+        @if($assessment->workflow_status == 'draft')
+            <span style="background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #d1d5db; text-transform: uppercase;">Draft Mode</span>
+        @elseif($assessment->workflow_status == 'submitted')
+            <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #fcd34d; text-transform: uppercase;">Submitted for Verification</span>
+        @elseif($assessment->workflow_status == 'approved')
+            <span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #6ee7b7; text-transform: uppercase;">Approved</span>
+        @elseif($assessment->workflow_status == 'rejected')
+            <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #fca5a5; text-transform: uppercase;">Rejected / Revision Required</span>
+        @endif
+    </div>
+
     <div class="simper-header">
         <div class="logo-left">
             <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT">
@@ -256,10 +268,28 @@
         </div>
     </div>
 
-    <div class="btn-back-bottom">
+    <div class="btn-back-bottom flex justify-center gap-3">
         <a href="{{ route('petugas.simper.index') }}" class="btn-modern-back">
             ← Kembali ke Riwayat
         </a>
+        
+        @if($assessment->canBeEdited())
+            <a href="{{ route('petugas.simper.edit', $assessment->id) }}" 
+               style="background: #fbbf24; color: #000;"
+               class="btn-modern-back">
+                Edit Data
+            </a>
+
+            <form action="{{ route('petugas.simper.submit', $assessment->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" 
+                        style="background: #059669; border: none; cursor: pointer;"
+                        class="btn-modern-back"
+                        onclick="return confirm('Kirim pengajuan SIMPER ini untuk diverifikasi?')">
+                    Kirim Verifikasi
+                </button>
+            </form>
+        @endif
     </div>
     </div>
 </div>

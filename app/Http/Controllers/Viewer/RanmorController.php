@@ -3,17 +3,30 @@
 namespace App\Http\Controllers\Viewer;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Ranmor\RanmorDocument;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RanmorController extends Controller
 {
+    private function applySecurityFilter($query)
+    {
+        $user = Auth::user();
+        return $query->where(function ($q) use ($user) {
+            if ($user->security_code) {
+                $q->where('security_code', $user->security_code);
+            }
+            $q->orWhere(function ($sub) use ($user) {
+                $sub->whereNull('security_code')
+                    ->where('pengemudi', $user->name);
+            });
+        });
+    }
+
     public function index(Request $request)
     {
-        $userName = Auth::user()->name;
-        $query = RanmorDocument::where('pengemudi', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected']);
+        $query = $this->applySecurityFilter(RanmorDocument::query())
+            ->whereIn('workflow_status', ['approved', 'rejected']);
 
         // Filter Zona
         if ($request->filled('zona')) {
@@ -30,17 +43,15 @@ class RanmorController extends Controller
         $sortOrder = $request->get('order', 'desc');
         $query->orderBy($sortField, $sortOrder);
 
-        $documents = $query->paginate(10)->withQueryString();
+        $documents = $query->paginate(15)->withQueryString();
 
         return view('viewer.ranmor.index', compact('documents'));
     }
 
     public function show($id)
     {
-        $userName = Auth::user()->name;
-        $document = RanmorDocument::with('findings')
-            ->where('pengemudi', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $document = $this->applySecurityFilter(RanmorDocument::with('findings'))
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->findOrFail($id);
 
         return view('viewer.ranmor.show', compact('document'));

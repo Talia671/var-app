@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use Illuminate\Http\Request; // ✅ WAJIB DITAMBAHKAN
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\RedirectResponse; // ✅ WAJIB DITAMBAHKAN
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -30,16 +30,27 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        if ($user->role === 'admin') {
+        // 📝 LOGGING
+        \App\Models\ActivityLog::log('login', 'auth', "User {$user->name} logged in.", $user->id);
+
+        if ($user->role === 'super_admin') {
+            return redirect()->route('super-admin.dashboard');
+        }
+
+        if ($user->role === 'admin' || $user->role === 'admin_perijinan') {
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user->role === 'petugas') {
+        if ($user->role === 'petugas' || $user->role === 'checker_lapangan') {
             return redirect()->route('petugas.dashboard');
         }
 
-        if ($user->role === 'viewer') {
+        if ($user->role === 'viewer' || $user->role === 'user') {
             return redirect()->route('viewer.dashboard');
+        }
+
+        if ($user->role === 'avp') {
+            return redirect()->route('avp.dashboard');
         }
 
         abort(403);

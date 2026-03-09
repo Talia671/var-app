@@ -9,6 +9,7 @@ class SimperDocument extends Model
     protected $table = 'simper_documents';
 
     protected $fillable = [
+        'security_code',
         'template_id',
         'petugas_id',
         'zona',
@@ -30,15 +31,33 @@ class SimperDocument extends Model
         'rejected_by',
         'rejected_reason',
         'rejected_at',
-        'data_json'
+        'data_json',
+        'verified_by',
+        'verified_at',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'verified_at' => 'datetime',
         'tanggal_uji' => 'date',
-        'data_json' => 'array'
+        'data_json' => 'array',
     ];
+
+    public function verifier()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'verified_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'approved_by');
+    }
+
+    public function rejecter()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'rejected_by');
+    }
 
     // Property accessors for compatibility with view
     public function getNameAttribute()
@@ -79,18 +98,25 @@ class SimperDocument extends Model
     public function getZona1Attribute()
     {
         $zona = $this->attributes['zona'] ?? '';
+
         return strpos($zona, 'zona_1') !== false || strpos($zona, '1') !== false;
     }
 
     public function getZona2Attribute()
     {
         $zona = $this->attributes['zona'] ?? '';
+
         return strpos($zona, 'zona_2') !== false || strpos($zona, '2') !== false;
     }
 
     public function notes()
     {
         return $this->hasMany(SimperNote::class);
+    }
+
+    public function checker()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'petugas_id');
     }
 
     /*
@@ -121,11 +147,11 @@ class SimperDocument extends Model
 
     public function canBeEdited()
     {
-        return in_array($this->workflow_status, ['draft', 'rejected']) && !$this->is_locked;
+        return in_array($this->workflow_status, ['draft', 'rejected']) && ! $this->is_locked;
     }
 
     public function canBeApproved()
     {
-        return $this->workflow_status === 'submitted' && !$this->is_locked;
+        return $this->workflow_status === 'submitted' && ! $this->is_locked;
     }
 }

@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('ranmor_document_id')
-                  ->constrained('ranmor_documents')
-                  ->cascadeOnDelete();
+                ->constrained('ranmor_documents')
+                ->cascadeOnDelete();
 
             $table->text('uraian')->nullable();
 

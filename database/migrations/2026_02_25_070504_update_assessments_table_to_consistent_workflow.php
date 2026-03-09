@@ -16,7 +16,7 @@ return new class extends Migration
                 ->default('draft')
                 ->after('tanggal_uji');
             $table->boolean('is_locked')->default(false)->after('workflow_status');
-            
+
             // Simpan status lama ke workflow_status jika perlu (opsional untuk seeder, tapi bagus untuk konsistensi)
             // Namun karena ini seeder-based, kita bisa biarkan default.
         });

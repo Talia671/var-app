@@ -31,6 +31,7 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">NPK</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tanggal Uji</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
@@ -51,6 +52,17 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ $item->tanggal_ujian ? \Carbon\Carbon::parse($item->tanggal_ujian)->format('d M Y') : '-' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($item->workflow_status == 'draft')
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800 border border-gray-200 uppercase tracking-tighter">Draft</span>
+                        @elseif($item->workflow_status == 'submitted')
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 uppercase tracking-tighter">Submitted</span>
+                        @elseif($item->workflow_status == 'approved')
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 border border-green-200 uppercase tracking-tighter">Approved</span>
+                        @elseif($item->workflow_status == 'rejected')
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 border border-red-200 uppercase tracking-tighter">Rejected</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 flex items-center">
                         <a href="{{ route('petugas.ujsimp.show', $item->id) }}"

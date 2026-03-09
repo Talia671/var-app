@@ -12,7 +12,7 @@ class SimperPdfController extends Controller
     {
         $assessment = SimperDocument::findOrFail($id);
 
-        if (!$assessment->isApproved()) {
+        if (! $assessment->isApproved()) {
             abort(403, 'Dokumen belum disetujui.');
         }
 

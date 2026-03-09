@@ -9,13 +9,25 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckupController extends Controller
 {
+    private function applySecurityFilter($query)
+    {
+        $user = Auth::user();
+        return $query->where(function ($q) use ($user) {
+            if ($user->security_code) {
+                $q->where('security_code', $user->security_code);
+            }
+            $q->orWhere(function ($sub) use ($user) {
+                $sub->whereNull('security_code')
+                    ->where('nama_pengemudi', $user->name);
+            });
+        });
+    }
+
     public function preview($id)
     {
-        $userName = Auth::user()->name;
-        $document = CheckupDocument::with(['results.item', 'photos', 'creator', 'approver'])
+        $document = $this->applySecurityFilter(CheckupDocument::with(['results.item', 'photos', 'creator', 'approver']))
             ->where('id', $id)
-            ->where('nama_pengemudi', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->firstOrFail();
 
         $pdf = Pdf::loadView('admin.checkup.pdf', compact('document'))
@@ -26,23 +38,32 @@ class CheckupController extends Controller
 
     public function index()
     {
-        $userName = Auth::user()->name;
-        $documents = CheckupDocument::where('nama_pengemudi', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $documents = $this->applySecurityFilter(CheckupDocument::query())
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('viewer.checkup.index', compact('documents'));
     }
 
     public function show($id)
     {
-        $userName = Auth::user()->name;
-        $document = CheckupDocument::with(['results.item', 'photos'])
-            ->where('nama_pengemudi', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $document = $this->applySecurityFilter(CheckupDocument::with(['photos', 'approver', 'verifier', 'creator']))
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->findOrFail($id);
 
-        return view('viewer.checkup.show', compact('document'));
+        $items = \App\Models\Checkup\CheckupItem::where('is_active', 1)
+            ->orderBy('item_number')
+            ->get();
+
+        $results = \App\Models\Checkup\CheckupResult::where('checkup_document_id', $document->id)
+            ->get()
+            ->keyBy('checkup_item_id');
+
+        return view('viewer.checkup.show', [
+            'document' => $document,
+            'items' => $items,
+            'results' => $results
+        ]);
     }
 }

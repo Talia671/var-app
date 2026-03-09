@@ -22,7 +22,7 @@ return new class extends Migration
                 ->constrained('ujsimp_items')
                 ->cascadeOnDelete();
 
-            $table->enum('nilai_huruf', ['B','S','K'])->nullable();
+            $table->enum('nilai_huruf', ['B', 'S', 'K'])->nullable();
             $table->integer('nilai_angka')->nullable();
 
             $table->timestamps();

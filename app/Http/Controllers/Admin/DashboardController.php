@@ -3,127 +3,188 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Simper\SimperDocument;
 use App\Models\Checkup\CheckupDocument;
 use App\Models\Ranmor\RanmorDocument;
+use App\Models\Simper\SimperDocument;
 use App\Models\Ujsimp\UjsimpTest;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. FILTER LOGIC
-        $filter = $request->input('filter', '1_month');
-        $endDate = now();
-        $startDate = match($filter) {
-            '1_day' => now()->subDay(),
-            '3_days' => now()->subDays(3),
-            '1_week' => now()->subWeek(),
-            default => now()->subMonth(),
-        };
+        $range = $request->input('range', 'month');
+        $category = $request->input('category', 'all');
 
-        // 2. EXISTING STATS (Overall Counts - Not affected by filter usually, but maybe they should be? 
-        // The prompt says "berikan design informasi terkait statistik... yang dimana design nya mengikuti mode pagi/malam. menggunakan 2 tampilan... box card berisi jumlah approval 4 document tersebut, terdapat menu dropdown yang digunakan untuk menampilkan filter 1 hari..."
-        // This implies the Box Cards ALSO depend on the filter.
-        // So I should apply filters to the stats too.
+        $range = in_array($range, ['today', 'week', 'month'], true) ? $range : 'month';
+        $category = in_array($category, ['all', 'simper', 'ujsimp', 'checkup', 'ranmor'], true) ? $category : 'all';
 
-        // SIMPER (Assessment)
-        $simperStats = $this->getStats(SimperDocument::class, 'status', $startDate, $endDate);
-        
-        // UJSIMP
-        $ujsimpStats = $this->getStats(UjsimpTest::class, 'workflow_status', $startDate, $endDate);
+        [$startAt, $endAt, $bucket, $labelKeys, $labels] = $this->resolveRange($range);
 
-        // CHECKUP
-        $checkupStats = $this->getStats(CheckupDocument::class, 'workflow_status', $startDate, $endDate);
+        $modules = $this->moduleConfig();
+        $selectedModules = $category === 'all' ? $modules : [$category => $modules[$category]];
 
-        // RANMOR
-        $ranmorStats = $this->getStats(RanmorDocument::class, 'workflow_status', $startDate, $endDate);
+        $chartSubmitted = $this->buildTimeSeriesChart($selectedModules, $startAt, $endAt, $bucket, $labelKeys, $labels);
+        $chartPending = $this->buildTimeSeriesChart(
+            $selectedModules,
+            $startAt,
+            $endAt,
+            $bucket,
+            $labelKeys,
+            $labels,
+            fn ($query) => $query->where('workflow_status', 'submitted')
+        );
 
-        // 3. CHART DATA (Daily Approved Counts)
-        $chartData = $this->getChartData($startDate, $endDate);
+        [$verifiedTotal, $rejectedTotal] = $this->verificationTotals($startAt, $endAt);
 
-        return view('admin.dashboard', compact(
-            'simperStats',
-            'ujsimpStats',
-            'checkupStats',
-            'ranmorStats',
-            'chartData',
-            'filter'
-        ));
+        $chartVerificationResult = [
+            'labels' => ['Verified', 'Rejected'],
+            'data' => [$verifiedTotal, $rejectedTotal],
+        ];
+
+        return view('admin.dashboard', [
+            'range' => $range,
+            'category' => $category,
+            'chartSubmitted' => $chartSubmitted,
+            'chartPending' => $chartPending,
+            'chartVerificationResult' => $chartVerificationResult,
+        ]);
     }
 
-    private function getStats($model, $statusColumn, $startDate, $endDate)
+    private function moduleConfig(): array
     {
-        // We need counts for Pending, Approved, Rejected within the timeframe?
-        // Or just total approvals?
-        // The prompt says "berisi jumlah approval 4 document tersebut".
-        // And "terdapat menu dropdown yang digunakan untuk menampilkan filter".
-        // It seems the box cards show the "Approval Count" based on the filter.
-        
-        // Let's get counts for all statuses just in case, filtered by created_at or approved_at?
-        // Usually stats are based on when they were created or when they were acted upon.
-        // For "Approval Count", it should be based on `approved_at`.
-        
         return [
-            'approved' => $model::where($statusColumn, 'approved')
-                ->whereBetween('approved_at', [$startDate, $endDate])
-                ->count(),
-            'pending' => $model::whereIn($statusColumn, ['pending', 'submitted'])
-                // For pending, we might want to show ALL pending, not just those created recently.
-                // But if the filter implies "Performance in the last week", maybe just approved?
-                // The prompt says "jumlah approval 4 document tersebut".
-                // So specifically Approval Count.
-                // But usually dashboards show Pending tasks too.
-                // Let's count Pending (Total) and Approved (Filtered).
-                ->count(),
-            'rejected' => $model::where($statusColumn, 'rejected')
-                ->whereBetween('updated_at', [$startDate, $endDate]) // Rejected at?
-                ->count(),
+            'simper' => [
+                'label' => 'SIMPER',
+                'model' => SimperDocument::class,
+                'color' => '#1268B3',
+            ],
+            'ujsimp' => [
+                'label' => 'UJSIMP',
+                'model' => UjsimpTest::class,
+                'color' => '#F47920',
+            ],
+            'checkup' => [
+                'label' => 'Checklist',
+                'model' => CheckupDocument::class,
+                'color' => '#10B981',
+            ],
+            'ranmor' => [
+                'label' => 'Ranmor',
+                'model' => RanmorDocument::class,
+                'color' => '#8B5CF6',
+            ],
         ];
     }
 
-    private function getChartData($startDate, $endDate)
+    private function resolveRange(string $range): array
     {
-        $period = CarbonPeriod::create($startDate, $endDate);
-        $dates = [];
+        $endAt = Carbon::now();
+
+        if ($range === 'today') {
+            $startAt = $endAt->copy()->startOfDay();
+            $labelKeys = range(0, 23);
+            $labels = array_map(fn ($h) => str_pad((string) $h, 2, '0', STR_PAD_LEFT).':00', $labelKeys);
+            return [$startAt, $endAt, 'hour', $labelKeys, $labels];
+        }
+
+        if ($range === 'week') {
+            $startAt = $endAt->copy()->startOfWeek();
+        } else {
+            $startAt = $endAt->copy()->startOfMonth();
+        }
+
+        $period = CarbonPeriod::create($startAt->copy()->startOfDay(), $endAt->copy()->startOfDay());
+        $labelKeys = [];
+        $labels = [];
         foreach ($period as $date) {
-            $dates[] = $date->format('Y-m-d');
+            $labelKeys[] = $date->format('Y-m-d');
+            $labels[] = $date->format('Y-m-d');
         }
 
-        // Helper query: Count submitted documents based on created_at
-        $query = function($model) use ($startDate, $endDate) {
-            $data = $model::whereBetween('created_at', [$startDate, $endDate])
-                ->selectRaw("DATE(created_at) as date, count(*) as count")
-                ->groupBy('date')
-                ->pluck('count', 'date')
-                ->toArray();
-            return $data;
-        };
+        return [$startAt, $endAt, 'day', $labelKeys, $labels];
+    }
 
-        $simperData = $query(SimperDocument::class);
-        $ujsimpData = $query(UjsimpTest::class);
-        $checkupData = $query(CheckupDocument::class);
-        $ranmorData = $query(RanmorDocument::class);
+    private function buildTimeSeriesChart(
+        array $modules,
+        Carbon $startAt,
+        Carbon $endAt,
+        string $bucket,
+        array $labelKeys,
+        array $labels,
+        ?callable $applyFilters = null
+    ): array {
+        $datasets = [];
+
+        foreach ($modules as $moduleKey => $module) {
+            $series = $this->timeSeriesForModel($module['model'], $startAt, $endAt, $bucket, $labelKeys, $applyFilters);
+            $datasets[] = [
+                'key' => $moduleKey,
+                'label' => $module['label'],
+                'color' => $module['color'],
+                'data' => $series,
+            ];
+        }
 
         return [
-            'labels' => $dates,
-            'simper' => $this->fillDates($dates, $simperData),
-            'ujsimp' => $this->fillDates($dates, $ujsimpData),
-            'checkup' => $this->fillDates($dates, $checkupData),
-            'ranmor' => $this->fillDates($dates, $ranmorData),
+            'labels' => $labels,
+            'datasets' => $datasets,
         ];
     }
 
-    private function fillDates($dates, $data)
-    {
-        $result = [];
-        foreach ($dates as $date) {
-            $result[] = $data[$date] ?? 0;
+    private function timeSeriesForModel(
+        string $modelClass,
+        Carbon $startAt,
+        Carbon $endAt,
+        string $bucket,
+        array $labelKeys,
+        ?callable $applyFilters
+    ): array {
+        $query = $modelClass::query()->whereBetween('created_at', [$startAt, $endAt]);
+
+        if ($applyFilters) {
+            $applyFilters($query);
         }
+
+        if ($bucket === 'hour') {
+            $raw = $query
+                ->selectRaw('HOUR(created_at) as bucket, count(*) as total')
+                ->groupBy('bucket')
+                ->pluck('total', 'bucket')
+                ->toArray();
+        } else {
+            $raw = $query
+                ->selectRaw('DATE(created_at) as bucket, count(*) as total')
+                ->groupBy('bucket')
+                ->pluck('total', 'bucket')
+                ->toArray();
+        }
+
+        $result = [];
+        foreach ($labelKeys as $key) {
+            $result[] = (int) ($raw[$key] ?? 0);
+        }
+
         return $result;
+    }
+
+    private function verificationTotals(Carbon $startAt, Carbon $endAt): array
+    {
+        $verified = 0;
+        $rejected = 0;
+
+        $verified += SimperDocument::where('workflow_status', 'verified')->whereBetween('verified_at', [$startAt, $endAt])->count();
+        $verified += UjsimpTest::where('workflow_status', 'verified')->whereBetween('verified_at', [$startAt, $endAt])->count();
+        $verified += CheckupDocument::where('workflow_status', 'verified')->whereBetween('verified_at', [$startAt, $endAt])->count();
+        $verified += RanmorDocument::where('workflow_status', 'verified')->whereBetween('verified_at', [$startAt, $endAt])->count();
+
+        $rejected += SimperDocument::where('workflow_status', 'rejected')->whereBetween('rejected_at', [$startAt, $endAt])->count();
+        $rejected += UjsimpTest::where('workflow_status', 'rejected')->whereBetween('rejected_at', [$startAt, $endAt])->count();
+        $rejected += CheckupDocument::where('workflow_status', 'rejected')->whereBetween('rejected_at', [$startAt, $endAt])->count();
+        $rejected += RanmorDocument::where('workflow_status', 'rejected')->whereBetween('rejected_at', [$startAt, $endAt])->count();
+
+        return [$verified, $rejected];
     }
 }

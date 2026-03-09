@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ujsimp_items', function (Blueprint $table) {
             $table->id();
 
-            $table->enum('kategori', ['teknik','rambu']);
+            $table->enum('kategori', ['teknik', 'rambu']);
             $table->integer('urutan');
             $table->text('uraian');
 

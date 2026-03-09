@@ -2,103 +2,149 @@
 
 @section('content')
 
-<style>
-body {
-    font-family: "Arial", sans-serif;
-    font-size: 11px;
-    line-height: 1.2;
-    color: #000;
-}
+<div class="document-wrapper card-ui p-8">
+    <!-- Header -->
+    <table class="w-full mb-6">
+        <tr>
+            <td width="20%">
+                <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT" style="height: 50px;">
+            </td>
+            <td width="60%" class="text-center">
+                <h1 class="document-title">UJI SIMPER KENDARAAN</h1>
+                <p class="text-sm text-gray-500">PT PUPUK KALIMANTAN TIMUR</p>
+            </td>
+            <td width="20%" class="text-right">
+                <img src="{{ asset('assets/images/logo-k3.svg') }}" alt="Logo K3" style="height: 50px;">
+            </td>
+        </tr>
+    </table>
 
-.outer-border {
-    border: 1px solid #000;
-    padding: 10px;
-    min-height: 1000px;
-}
+    <!-- Identity -->
+    <div class="document-section">
+        <table class="w-full text-sm">
+            <tr>
+                <td width="150" class="py-1 font-semibold">Nama</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nama }}</td>
+                <td width="20"></td>
+                <td width="150" class="py-1 font-semibold">Jenis Kendaraan</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->jenis_kendaraan }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Perusahaan</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->perusahaan }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Type Unit</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->type_unit }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Unit Kerja</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->unit_kerja }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Nomor Polisi</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nomor_polisi }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Tanggal Uji</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ \Carbon\Carbon::parse($document->tanggal_uji)->format('d F Y') }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Hasil Uji</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300 font-bold {{ $document->hasil_uji == 'Lulus' ? 'text-green-600' : 'text-red-600' }}">{{ $document->hasil_uji }}</td>
+            </tr>
+        </table>
+    </div>
 
-/* Header Logos */
-.header-table {
-    width: 100%;
-    margin-bottom: 5px;
-}
+    <!-- Main Table (Scores) -->
+    <div class="document-section">
+        <table class="table-ui">
+            <thead>
+                <tr>
+                    <th class="w-10 text-center">No</th>
+                    <th>Item Penilaian</th>
+                    <th class="w-20 text-center">Nilai</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($document->scores as $index => $score)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $score->item->uraian }}</td>
+                    <td class="text-center font-bold">{{ $score->nilai }}</td>
+                    <td>{{ $score->keterangan }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="bg-gray-50">
+                    <td colspan="2" class="text-right font-bold p-3">Total Nilai:</td>
+                    <td class="text-center font-bold p-3">{{ $document->scores->sum('nilai') }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
-.header-table td {
-    vertical-align: middle;
-}
+    @if($document->catatan)
+    <div class="document-section bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 class="font-semibold text-gray-700 mb-2">Catatan Tambahan:</h3>
+        <p class="text-sm">{{ $document->catatan }}</p>
+    </div>
+    @endif
 
-/* Title */
-.doc-title {
-    text-align: center;
-    font-weight: bold;
-    font-size: 13px;
-    text-decoration: underline;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
+    <!-- Signatures -->
+    <div class="signature-grid">
+        <div>
+            <p class="text-sm mb-8">Penguji (Checker)</p>
+            <div class="signature-space">
+                @if($document->checker)
+                    <div class="text-green-600 text-xs mb-1">Digitally Signed</div>
+                    <div class="font-bold">{{ $document->checker->name }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->created_at->format('d M Y H:i') }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">{{ $document->checker->name ?? '....................' }}</div>
+        </div>
 
-/* Identity Section */
-.identity-table {
-    width: 100%;
-    margin-bottom: 10px;
-}
+        <div>
+            <p class="text-sm mb-8">Diverifikasi Admin</p>
+            <div class="signature-space">
+                @if($document->admin_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Verified</div>
+                    <div class="font-bold">{{ $document->admin_approver->name ?? 'Admin' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->admin_approval_date ? \Carbon\Carbon::parse($document->admin_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">Admin Perizinan</div>
+        </div>
 
-.identity-table td {
-    padding: 1px 0;
-    vertical-align: top;
-}
-
-.identity-label {
-    width: 130px;
-    font-weight: bold;
-}
-
-.identity-colon {
-    width: 10px;
-}
-
-.identity-value {
-    border-bottom: 1px solid #000;
-    min-width: 150px;
-}
-
-/* Main Table */
-.main-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-}
-
-.main-table th, .main-table td {
-    border: 1px solid #000;
-    padding: 2px 4px;
-}
-
-.main-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    text-align: center;
-    text-transform: uppercase;
-}
-
-.category-row {
-    background-color: #e5e7eb;
-    font-weight: bold;
-}
-
-.category-num {
-    text-align: center;
-    width: 30px;
-}
-
-.item-num {
-    text-align: center;
-    width: 30px;
-}
-
-.score-col {
-    width: 20px;
-    text-align: center;
-    font-size: 10px;
+        <div>
+            <p class="text-sm mb-8">Disetujui AVP</p>
+            <div class="signature-space">
+                @if($document->avp_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Approved</div>
+                    <div class="font-bold">{{ $document->avp_approver->name ?? 'AVP' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->avp_approval_date ? \Carbon\Carbon::parse($document->avp_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">AVP K3</div>
+        </div>
+    </div>
+</div>
+@endsection    font-size: 10px;
 }
 
 .nilai-header {

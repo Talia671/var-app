@@ -23,14 +23,14 @@ return new class extends Migration
             $table->string('jenis_kendaraan');
             $table->date('tanggal_pemeriksaan');
 
-            $table->enum('rekomendasi', ['layak','tidak_layak'])->nullable();
-            $table->enum('zona', ['zona1','zona2'])->nullable();
+            $table->enum('rekomendasi', ['layak', 'tidak_layak'])->nullable();
+            $table->enum('zona', ['zona1', 'zona2'])->nullable();
 
             $table->enum('workflow_status', [
                 'draft',
                 'submitted',
                 'approved',
-                'rejected'
+                'rejected',
             ])->default('draft');
 
             $table->unsignedBigInteger('approved_by')->nullable();

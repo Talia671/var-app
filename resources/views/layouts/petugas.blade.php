@@ -1,4 +1,4 @@
-@extends('layouts.app-master')
+@extends('layouts.app')
 
 @section('title', 'Petugas Panel - VAR APP')
 

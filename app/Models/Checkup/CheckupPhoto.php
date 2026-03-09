@@ -15,6 +15,6 @@ class CheckupPhoto extends Model
 
     public function document()
     {
-        return $this->belongsTo(CheckupDocument::class,'checkup_document_id');
+        return $this->belongsTo(CheckupDocument::class, 'checkup_document_id');
     }
 }

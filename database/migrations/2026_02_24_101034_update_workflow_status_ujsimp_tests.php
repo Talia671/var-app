@@ -13,7 +13,7 @@ return new class extends Migration
                 'draft',
                 'submitted',
                 'approved',
-                'rejected'
+                'rejected',
             ])->default('draft')->change();
         });
     }

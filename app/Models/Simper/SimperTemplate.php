@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Simper;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AssessmentTemplate extends Model
+class SimperTemplate extends Model
 {
-    //
+    protected $table = 'simper_templates';
 }

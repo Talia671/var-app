@@ -13,7 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('checkup_document_id');
             $table->unsignedBigInteger('checkup_item_id');
 
-            $table->enum('hasil',['Baik','Rusak','Tidak Ada']);
+            $table->enum('hasil', ['Baik', 'Rusak', 'Tidak Ada']);
             $table->text('tindakan_perbaikan')->nullable();
 
             $table->timestamps();

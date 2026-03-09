@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Petugas;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Ranmor\RanmorDocument;
 use App\Models\Ranmor\RanmorFinding;
+use App\Services\CooldownService;
+use App\Services\ExamDuplicateService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RanmorController extends Controller
 {
@@ -22,10 +24,10 @@ class RanmorController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('no_pol', 'like', "%{$search}%")
-                  ->orWhere('pengemudi', 'like', "%{$search}%")
-                  ->orWhere('npk', 'like', "%{$search}%");
+                    ->orWhere('pengemudi', 'like', "%{$search}%")
+                    ->orWhere('npk', 'like', "%{$search}%");
             });
         }
 
@@ -44,7 +46,7 @@ class RanmorController extends Controller
         $sortOrder = $request->get('order', 'desc');
         $query->orderBy($sortField, $sortOrder);
 
-        $documents = $query->paginate(10)->withQueryString();
+        $documents = $query->paginate(15)->withQueryString();
 
         return view('petugas.ranmor.index', compact('documents'));
     }
@@ -54,8 +56,17 @@ class RanmorController extends Controller
     | CREATE
     |--------------------------------------------------------------------------
     */
-    public function create()
+    public function create(CooldownService $cooldownService)
     {
+        // Cooldown check
+        if ($retryAt = $cooldownService->checkUserCooldown(Auth::id(), 'ranmor')) {
+            $date = $retryAt->format('d M Y H:i');
+
+            return redirect()
+                ->route('petugas.ranmor.index')
+                ->with('error', "Anda sedang dalam masa pending. Silakan coba kembali setelah $date.");
+        }
+
         return view('petugas.ranmor.create');
     }
 
@@ -64,9 +75,30 @@ class RanmorController extends Controller
     | STORE (Draft)
     |--------------------------------------------------------------------------
     */
-    public function store(Request $request)
+    public function store(Request $request, CooldownService $cooldownService, ExamDuplicateService $examDuplicateService)
     {
+        // Cooldown check
+        if ($retryAt = $cooldownService->checkUserCooldown(Auth::id(), 'ranmor')) {
+            $date = $retryAt->format('d M Y H:i');
+
+            return redirect()
+                ->route('petugas.ranmor.index')
+                ->with('error', "Anda sedang dalam masa pending. Silakan coba kembali setelah $date.");
+        }
+
+        // Security Code Check
+        if ($cooldownService->isSuspended($request->security_code)) {
+            abort(403, 'Akun ini masih dalam masa suspend');
+        }
+
+        // Duplicate Exam Check
+        if ($examDuplicateService->checkDuplicate($request->security_code, 'ranmor')) {
+            ActivityLog::log('exam_duplicate_blocked', 'ranmor', 'Duplicate exam creation blocked for '.$request->security_code);
+            return back()->withInput()->with('error', 'User ini sudah memiliki pemeriksaan Ranmor yang masih aktif.');
+        }
+
         $request->validate([
+            'security_code' => ['required', 'regex:/^S-PKT-\d{6}$/'],
             'zona' => 'required|in:zona1,zona2',
             'no_pol' => 'required',
             'no_lambung' => 'required',
@@ -76,6 +108,7 @@ class RanmorController extends Controller
         ]);
 
         $document = RanmorDocument::create([
+            'security_code' => $request->security_code,
             'zona' => $request->zona,
             'no_pol' => $request->no_pol,
             'no_lambung' => $request->no_lambung,
@@ -93,6 +126,7 @@ class RanmorController extends Controller
             'nomor_simper' => $request->nomor_simper,
             'masa_berlaku' => $request->masa_berlaku,
             'tanggal_periksa' => $request->tanggal_periksa,
+            'catatan_petugas' => $request->catatan_petugas,
             'workflow_status' => 'draft',
             'created_by' => Auth::id(),
         ]);
@@ -109,9 +143,12 @@ class RanmorController extends Controller
             }
         }
 
+        // 📝 LOGGING
+        \App\Models\ActivityLog::log('exam_created', 'ranmor', "Created Ranmor for {$document->pengemudi} (ID: {$document->id})");
+
         return redirect()
             ->route('petugas.ranmor.index')
-            ->with('success', 'Dokumen berhasil disimpan sebagai Draft.');
+            ->with('success', 'Data berhasil disimpan sebagai draft.');
     }
 
     /*
@@ -141,7 +178,7 @@ class RanmorController extends Controller
             ->where('created_by', Auth::id())
             ->firstOrFail();
 
-        if (!in_array($document->workflow_status, ['draft', 'rejected'])) {
+        if (! in_array($document->workflow_status, ['draft', 'rejected'])) {
             abort(403, 'Dokumen tidak bisa diedit.');
         }
 
@@ -159,7 +196,7 @@ class RanmorController extends Controller
             ->where('created_by', Auth::id())
             ->firstOrFail();
 
-        if (!in_array($document->workflow_status, ['draft', 'rejected'])) {
+        if (! in_array($document->workflow_status, ['draft', 'rejected'])) {
             abort(403, 'Dokumen tidak bisa diedit.');
         }
 
@@ -181,6 +218,7 @@ class RanmorController extends Controller
             'nomor_simper' => $request->nomor_simper,
             'masa_berlaku' => $request->masa_berlaku,
             'tanggal_periksa' => $request->tanggal_periksa,
+            'catatan_petugas' => $request->catatan_petugas,
         ]);
 
         // Hapus temuan lama
@@ -214,13 +252,16 @@ class RanmorController extends Controller
             ->where('created_by', Auth::id())
             ->firstOrFail();
 
-        if (!in_array($document->workflow_status, ['draft', 'rejected'])) {
+        if (! in_array($document->workflow_status, ['draft', 'rejected'])) {
             return back()->with('error', 'Dokumen tidak bisa disubmit.');
         }
 
         $document->update([
-            'workflow_status' => 'submitted'
+            'workflow_status' => 'submitted',
         ]);
+
+        // 📝 LOGGING
+        \App\Models\ActivityLog::log('exam_submitted', 'ranmor', "Submitted Ranmor for {$document->pengemudi} (ID: {$document->id})");
 
         return redirect()
             ->route('petugas.ranmor.show', $id)

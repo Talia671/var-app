@@ -24,7 +24,7 @@ return [
                 10 => 'Setelah berhenti bergerak mundur belok kiri lurus masuk terusan stop',
                 11 => 'Setelah berhenti bergerak maju lurus masuk terusan stop',
                 12 => 'Setelah berhenti bergerak mundur belok kiri lurus masuk terusan stop',
-            ]
+            ],
         ],
 
         /*
@@ -55,7 +55,7 @@ return [
                 30 => 'Tidak parkir di tempat terlarang',
                 31 => 'Mematuhi keselamatan & rambu',
                 32 => 'Parkir mundur pada tempat yang ditentukan',
-            ]
+            ],
         ],
 
     ],

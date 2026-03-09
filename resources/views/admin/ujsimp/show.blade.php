@@ -19,6 +19,36 @@
     @endif
 </div>
 
+@if($test->workflow_status === 'submitted')
+<div class="flex justify-end gap-3 mb-6">
+    <form action="{{ route('admin.ujsimp.verify', $test->id) }}" method="POST">
+        @csrf
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-secondary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
+            Verify
+        </button>
+    </form>
+
+    <form action="{{ route('admin.ujsimp.reject', $test->id) }}" method="POST">
+        @csrf
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
+            Reject
+        </button>
+    </form>
+</div>
+@elseif($test->workflow_status === 'verified')
+<div class="flex justify-end mb-6">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+        Verified
+    </span>
+</div>
+@elseif($test->workflow_status === 'rejected')
+<div class="flex justify-end mb-6">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
+        Rejected
+    </span>
+</div>
+@endif
+
 <!-- DOCUMENT PREVIEW -->
 <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-8 max-w-5xl mx-auto">
     <div class="p-8 md:p-12">
@@ -100,7 +130,6 @@
                 </thead>
                 <tbody class="text-gray-700 dark:text-gray-300">
                     @php
-                        $itemsConfig = config('ujsimp.items');
                         $scoresMap = $test->scores->keyBy('ujsimp_item_id');
                         $romans = ['I', 'II', 'III', 'IV'];
                     @endphp
@@ -186,38 +215,5 @@
         </div>
     </div>
 </div>
-
-<!-- ACTION BUTTONS -->
-@if($test->workflow_status == 'submitted')
-<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-    <!-- APPROVE FORM -->
-    <form action="{{ route('admin.ujsimp.approve', $test->id) }}" method="POST" class="w-full">
-        @csrf
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-            <h4 class="text-lg font-bold text-green-700 dark:text-green-400 mb-2">Setujui Pengajuan</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Pastikan data sudah benar sebelum menyetujui.</p>
-            <button type="submit" class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow transition-transform transform hover:scale-[1.02]">
-                ✓ Approve Result
-            </button>
-        </div>
-    </form>
-
-    <!-- REJECT FORM -->
-    <form action="{{ route('admin.ujsimp.reject', $test->id) }}" method="POST" class="w-full">
-        @csrf
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border-l-4 border-red-500">
-            <h4 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">Tolak Pengajuan</h4>
-            <input type="text" 
-                   name="rejected_reason" 
-                   placeholder="Masukkan alasan penolakan..."
-                   required
-                   class="w-full mb-4 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white">
-            <button type="submit" class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow transition-transform transform hover:scale-[1.02]">
-                ✕ Reject Result
-            </button>
-        </div>
-    </form>
-</div>
-@endif
 
 @endsection

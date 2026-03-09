@@ -17,11 +17,11 @@ class CheckupResult extends Model
 
     public function document()
     {
-        return $this->belongsTo(CheckupDocument::class,'checkup_document_id');
+        return $this->belongsTo(CheckupDocument::class, 'checkup_document_id');
     }
 
     public function item()
     {
-        return $this->belongsTo(CheckupItem::class,'checkup_item_id');
+        return $this->belongsTo(CheckupItem::class, 'checkup_item_id');
     }
 }

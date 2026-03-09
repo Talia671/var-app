@@ -8,23 +8,34 @@ use Illuminate\Support\Facades\Auth;
 
 class SimperController extends Controller
 {
+    private function applySecurityFilter($query)
+    {
+        $user = Auth::user();
+        return $query->where(function ($q) use ($user) {
+            if ($user->security_code) {
+                $q->where('security_code', $user->security_code);
+            }
+            $q->orWhere(function ($sub) use ($user) {
+                $sub->whereNull('security_code')
+                    ->where('nama', $user->name);
+            });
+        });
+    }
+
     public function index()
     {
-        $userName = Auth::user()->name;
-        $documents = SimperDocument::where('nama', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $documents = $this->applySecurityFilter(SimperDocument::query())
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('viewer.simper.index', compact('documents'));
     }
 
     public function show($id)
     {
-        $userName = Auth::user()->name;
-        $assessment = SimperDocument::with('notes')
-            ->where('nama', $userName)
-            ->whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $assessment = $this->applySecurityFilter(SimperDocument::with('notes'))
+            ->whereIn('workflow_status', ['approved', 'rejected'])
             ->findOrFail($id);
 
         return view('viewer.simper.show', compact('assessment'));

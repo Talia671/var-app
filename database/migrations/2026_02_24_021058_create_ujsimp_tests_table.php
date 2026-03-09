@@ -25,13 +25,13 @@ return new class extends Migration
             $table->string('jenis_simper');
 
             // HASIL
-            $table->enum('status', ['lulus','belum_lulus'])->default('belum_lulus');
-            $table->decimal('nilai_total',8,2)->nullable();
-            $table->decimal('nilai_rata_rata',8,2)->nullable();
+            $table->enum('status', ['lulus', 'belum_lulus'])->default('belum_lulus');
+            $table->decimal('nilai_total', 8, 2)->nullable();
+            $table->decimal('nilai_rata_rata', 8, 2)->nullable();
             $table->text('catatan_penguji')->nullable();
 
             // WORKFLOW
-            $table->enum('workflow_status', ['draft','submitted','approved','rejected'])->default('draft');
+            $table->enum('workflow_status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->boolean('is_locked')->default(false);

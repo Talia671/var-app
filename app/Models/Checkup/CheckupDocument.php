@@ -9,6 +9,7 @@ class CheckupDocument extends Model
     protected $table = 'checkup_documents';
 
     protected $fillable = [
+        'security_code',
         'nama_pengemudi',
         'npk',
         'nomor_sim',
@@ -21,18 +22,36 @@ class CheckupDocument extends Model
         'tanggal_pemeriksaan',
         'rekomendasi',
         'zona',
+        'catatan_petugas',
         'workflow_status',
         'approved_by',
         'approved_at',
         'is_locked',
         'created_by',
+        'verified_by',
+        'verified_at',
+        'rejected_by',
+        'rejected_at',
+        'rejected_reason',
     ];
 
     protected $casts = [
         'tanggal_pemeriksaan' => 'date',
         'approved_at' => 'datetime',
+        'verified_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'is_locked' => 'boolean',
     ];
+
+    public function verifier()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'verified_by');
+    }
+
+    public function rejecter()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'rejected_by');
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -88,11 +107,11 @@ class CheckupDocument extends Model
 
     public function canBeEdited()
     {
-        return in_array($this->workflow_status, ['draft','rejected']) && !$this->is_locked;
+        return in_array($this->workflow_status, ['draft', 'rejected']) && ! $this->is_locked;
     }
 
     public function canBeApproved()
     {
-        return $this->workflow_status === 'submitted' && !$this->is_locked;
+        return $this->workflow_status === 'submitted' && ! $this->is_locked;
     }
 }

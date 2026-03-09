@@ -5,22 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Simper\SimperDocument;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 
 class SimperApprovalController extends Controller
 {
     public function index()
     {
-        $data = SimperDocument::whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $data = SimperDocument::where('workflow_status', 'submitted')
             ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('admin.simper.index', compact('data'));
     }
 
     public function show($id)
     {
-        $data = SimperDocument::whereIn('workflow_status', ['submitted', 'approved', 'rejected'])
+        $data = SimperDocument::where('workflow_status', 'submitted')
             ->findOrFail($id);
 
         return view('admin.simper.show', compact('data'));
@@ -30,38 +29,38 @@ class SimperApprovalController extends Controller
     {
         $assessment = SimperDocument::findOrFail($id);
 
-        if (!$assessment->canBeApproved()) {
-            return back()->with('error', 'Dokumen tidak bisa disetujui.');
+        if ($assessment->workflow_status !== 'submitted') {
+            abort(403);
         }
 
-        $assessment->update([
-            'workflow_status' => 'approved',
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'is_locked' => true,
-        ]);
+        $assessment->workflow_status = 'verified';
+        $assessment->verified_by = Auth::id();
+        $assessment->verified_at = now();
+        $assessment->save();
+
+        \App\Models\ActivityLog::log('exam_verified', 'simper', "Admin Verified SIMPER for {$assessment->nama} (ID: {$assessment->id})");
 
         return redirect()
             ->route('admin.simper.index')
-            ->with('success', 'Dokumen berhasil disetujui.');
+            ->with('success', 'Dokumen berhasil diverifikasi.');
     }
 
     public function reject($id)
     {
         $assessment = SimperDocument::findOrFail($id);
 
-        if (!$assessment->canBeApproved()) {
-            return back()->with('error', 'Dokumen tidak bisa ditolak.');
+        if ($assessment->workflow_status !== 'submitted') {
+            abort(403);
         }
 
-        $assessment->update([
-            'workflow_status' => 'rejected',
-            'status' => 'rejected',
-            'rejected_by' => Auth::id(),
-            'rejected_at' => now(),
-            'rejected_reason' => request('reason')
-        ]);
+        $assessment->workflow_status = 'rejected';
+        $assessment->status = 'rejected';
+        $assessment->rejected_by = Auth::id();
+        $assessment->rejected_at = now();
+        $assessment->rejected_reason = request('reason');
+        $assessment->save();
+
+        \App\Models\ActivityLog::log('exam_rejected', 'simper', "Admin Rejected SIMPER for {$assessment->nama} (ID: {$assessment->id})");
 
         return redirect()
             ->route('admin.simper.index')

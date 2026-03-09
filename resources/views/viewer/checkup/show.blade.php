@@ -2,103 +2,148 @@
 
 @section('content')
 
-<style>
-body {
-    font-family: "Arial", sans-serif;
-    font-size: 11px;
-    line-height: 1.2;
-    color: #000;
-}
+<div class="document-wrapper card-ui p-8">
+    <!-- Header -->
+    <table class="w-full mb-6">
+        <tr>
+            <td width="20%">
+                <img src="{{ asset('assets/images/logo-pkt.svg') }}" alt="Logo PKT" style="height: 50px;">
+            </td>
+            <td width="60%" class="text-center">
+                <h1 class="document-title">CHECKLIST PEMERIKSAAN KENDARAAN</h1>
+                <p class="text-sm text-gray-500">PT PUPUK KALIMANTAN TIMUR</p>
+            </td>
+            <td width="20%" class="text-right">
+                <img src="{{ asset('assets/images/logo-k3.svg') }}" alt="Logo K3" style="height: 50px;">
+            </td>
+        </tr>
+    </table>
 
-.outer-border {
-    border: 1px solid #000;
-    padding: 10px;
-    min-height: 1000px;
-}
+    <!-- Identity -->
+    <div class="document-section">
+        <table class="w-full text-sm">
+            <tr>
+                <td width="150" class="py-1 font-semibold">Nama Pengemudi</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nama_pengemudi }}</td>
+                <td width="20"></td>
+                <td width="150" class="py-1 font-semibold">Nomor Polisi</td>
+                <td width="10" class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nomor_polisi }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Perusahaan</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->perusahaan }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Nomor Lambung</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->nomor_lambung }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Departemen</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->departemen }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Lokasi</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->lokasi_pemeriksaan }}</td>
+            </tr>
+            <tr>
+                <td class="py-1 font-semibold">Jenis Kendaraan</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ $document->jenis_kendaraan }}</td>
+                <td></td>
+                <td class="py-1 font-semibold">Tanggal</td>
+                <td class="py-1">:</td>
+                <td class="py-1 border-b border-gray-300">{{ \Carbon\Carbon::parse($document->tanggal_pemeriksaan)->format('d F Y') }}</td>
+            </tr>
+        </table>
+    </div>
 
-/* Header Logos */
-.header-table {
-    width: 100%;
-    margin-bottom: 5px;
-}
+    <!-- Main Table -->
+    <div class="document-section">
+        <table class="table-ui">
+            <thead>
+                <tr>
+                    <th class="w-10 text-center">No</th>
+                    <th>Item Pemeriksaan</th>
+                    <th class="w-20 text-center">Kondisi</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($document->results as $index => $result)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $result->item->item_name }}</td>
+                    <td class="text-center">
+                        @if($result->hasil === 'baik')
+                            <span class="text-green-600 font-bold">✓</span>
+                        @else
+                            <span class="text-red-600 font-bold">✗</span>
+                        @endif
+                    </td>
+                    <td>{{ $result->keterangan }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
-.header-table td {
-    vertical-align: middle;
-}
+    @if($document->catatan)
+    <div class="document-section bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 class="font-semibold text-gray-700 mb-2">Catatan Tambahan:</h3>
+        <p class="text-sm">{{ $document->catatan }}</p>
+    </div>
+    @endif
 
-/* Title */
-.doc-title {
-    text-align: center;
-    font-weight: bold;
-    font-size: 13px;
-    text-decoration: underline;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
+    <!-- Signatures -->
+    <div class="signature-grid">
+        <div>
+            <p class="text-sm mb-8">Diperiksa Oleh (Checker)</p>
+            <div class="signature-space">
+                @if($document->creator)
+                    <div class="text-green-600 text-xs mb-1">Digitally Signed</div>
+                    <div class="font-bold">{{ $document->creator->name }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->created_at->format('d M Y H:i') }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">{{ $document->creator->name ?? '....................' }}</div>
+        </div>
 
-/* Identity Section */
-.identity-table {
-    width: 100%;
-    margin-bottom: 10px;
-}
+        <div>
+            <p class="text-sm mb-8">Diverifikasi Admin</p>
+            <div class="signature-space">
+                @if($document->admin_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Verified</div>
+                    <div class="font-bold">{{ $document->admin_approver->name ?? 'Admin' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->admin_approval_date ? \Carbon\Carbon::parse($document->admin_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">Admin Perizinan</div>
+        </div>
 
-.identity-table td {
-    padding: 1px 0;
-    vertical-align: top;
-}
-
-.identity-label {
-    width: 130px;
-    font-weight: bold;
-}
-
-.identity-colon {
-    width: 10px;
-}
-
-.identity-value {
-    border-bottom: 1px solid #000;
-    min-width: 150px;
-}
-
-/* Main Table */
-.main-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-}
-
-.main-table th, .main-table td {
-    border: 1px solid #000;
-    padding: 2px 4px;
-}
-
-.main-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    text-align: center;
-    text-transform: uppercase;
-}
-
-.text-center {
-    text-align: center;
-}
-
-/* Signatures */
-.signature-table {
-    width: 100%;
-    margin-top: 20px;
-}
-
-.signature-table td {
-    width: 33.33%;
-    text-align: center;
-    vertical-align: top;
-}
-
-.signature-space {
-    height: 60px;
-}
+        <div>
+            <p class="text-sm mb-8">Disetujui AVP</p>
+            <div class="signature-space">
+                @if($document->avp_approval_status === 'approved')
+                    <div class="text-green-600 text-xs mb-1">Digitally Approved</div>
+                    <div class="font-bold">{{ $document->avp_approver->name ?? 'AVP' }}</div>
+                    <div class="text-xs text-gray-500">{{ $document->avp_approval_date ? \Carbon\Carbon::parse($document->avp_approval_date)->format('d M Y H:i') : '' }}</div>
+                @else
+                    <br><br>
+                @endif
+            </div>
+            <div class="signature-name border-t border-gray-300 pt-2">AVP K3</div>
+        </div>
+    </div>
+</div>
+@endsection}
 
 .signature-name {
     font-weight: bold;
@@ -220,30 +265,34 @@ body {
     <table class="main-table">
         <thead>
             <tr>
-                <th rowspan="2" width="5%">NO</th>
-                <th rowspan="2" width="35%">OBYEK / ITEM PEMERIKSAAN</th>
-                <th rowspan="2" width="15%">STANDAR</th>
-                <th colspan="2" width="15%">HASIL</th>
-                <th rowspan="2" width="30%">TINDAKAN PERBAIKAN</th>
-            </tr>
-            <tr>
-                <th width="7.5%">BAIK</th>
-                <th width="7.5%">TDK BAIK</th>
+                <th width="5%">NO</th>
+                <th width="30%">OBYEK / ITEM PEMERIKSAAN</th>
+                <th width="20%">STANDAR</th>
+                <th width="15%">HASIL</th>
+                <th width="30%">TINDAKAN PERBAIKAN</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($document->results as $result)
+            @foreach($items as $item)
+            @php
+                $result = $results[$item->id] ?? null;
+            @endphp
             <tr>
-                <td class="text-center">{{ $result->item->urutan }}</td>
-                <td>{{ $result->item->uraian }}</td>
-                <td class="text-center"></td>
+                <td class="text-center">{{ $item->item_number }}</td>
+                <td>{{ $item->item_name }}</td>
+                <td>{{ $item->standard }}</td>
                 <td class="text-center">
-                    @if($result->hasil == 'Baik') ✔ @endif
+                    @if($result)
+                        @if(strtolower($result->hasil) == 'baik')
+                            <span style="color: green; font-weight: bold;">BAIK</span>
+                        @else
+                            <span style="color: red; font-weight: bold;">TIDAK BAIK</span>
+                        @endif
+                    @else
+                        -
+                    @endif
                 </td>
-                <td class="text-center">
-                    @if($result->hasil != 'Baik') ✔ @endif
-                </td>
-                <td>{{ $result->tindakan_perbaikan }}</td>
+                <td>{{ $result->tindakan_perbaikan ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -282,7 +331,7 @@ body {
     <table class="signature-table">
         <tr>
             <td>
-                Approver<br>
+                Approver (AVP)<br>
                 <div class="signature-space">
                     @if($document->workflow_status == 'approved' && $document->approver)
                         {{-- Optional: Digital Sign Indicator --}}

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Ranmor\RanmorDocument;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,7 +21,7 @@ class RanmorTest extends TestCase
     public function test_petugas_can_create_ranmor_draft()
     {
         $user = User::factory()->create(['role' => 'petugas']);
-        
+
         $data = [
             'zona' => 'zona1',
             'no_pol' => 'KT-1234-AB',
@@ -29,15 +29,15 @@ class RanmorTest extends TestCase
             'tanggal_periksa' => now()->format('Y-m-d'),
             'pengemudi' => 'Test Driver',
             'npk' => '12345',
-            'uraian' => ['Temuan 1', 'Temuan 2']
+            'uraian' => ['Temuan 1', 'Temuan 2'],
         ];
 
         $response = $this->actingAs($user)->post(route('petugas.ranmor.store'), $data);
-        
+
         $response->assertRedirect(route('petugas.ranmor.index'));
         $this->assertDatabaseHas('ranmor_documents', [
             'no_pol' => 'KT-1234-AB',
-            'workflow_status' => 'draft'
+            'workflow_status' => 'draft',
         ]);
         $this->assertDatabaseHas('ranmor_findings', ['uraian' => 'Temuan 1']);
     }
@@ -53,11 +53,11 @@ class RanmorTest extends TestCase
             'pengemudi' => 'Test Driver',
             'npk' => '12345',
             'workflow_status' => 'draft',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
 
         $response = $this->actingAs($user)->post(route('petugas.ranmor.submit', $document->id));
-        
+
         $response->assertRedirect(route('petugas.ranmor.show', $document->id));
         $this->assertEquals('submitted', $document->fresh()->workflow_status);
     }
@@ -66,7 +66,7 @@ class RanmorTest extends TestCase
     {
         $petugas = User::factory()->create(['role' => 'petugas']);
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         $document = RanmorDocument::create([
             'zona' => 'zona1',
             'no_pol' => 'KT-1234-AB',
@@ -75,11 +75,11 @@ class RanmorTest extends TestCase
             'pengemudi' => 'Test Driver',
             'npk' => '12345',
             'workflow_status' => 'submitted',
-            'created_by' => $petugas->id
+            'created_by' => $petugas->id,
         ]);
 
         $response = $this->actingAs($admin)->post(route('admin.ranmor.approve', $document->id));
-        
+
         $this->assertEquals('approved', $document->fresh()->workflow_status);
         $this->assertNotNull($document->fresh()->approved_at);
     }
