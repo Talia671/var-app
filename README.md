@@ -1,123 +1,169 @@
-# VAR APP - Vehicle Access Request System
+<p align="center">
+  <img src="public/assets/images/logo-pkt.svg" width="280">
+</p>
 
-Selamat datang di dokumentasi proyek **VAR APP**. Proyek ini adalah sistem manajemen pengajuan akses kendaraan (Vehicle Access Request) yang dibangun menggunakan framework **Laravel 12**. Sistem ini dirancang untuk menangani berbagai jenis dokumen dan alur kerja persetujuan (approval workflow) untuk operasional kendaraan.
+<h1 align="center">VAR APP</h1>
 
-## 📋 Deskripsi Proyek
+<p align="center">
+  Vehicle Access Request System
+</p>
 
-VAR APP adalah aplikasi web yang memfasilitasi proses:
-
-1.  **SIMPER (Surat Izin Mengemudi Perusahaan)**: Pengajuan dan persetujuan izin mengemudi di area perusahaan.
-2.  **UJSIMP (Uji Simp)**: Pencatatan hasil ujian praktek mengemudi.
-3.  **CHECKUP**: Pemeriksaan kondisi fisik kendaraan.
-4.  **RANMOR**: Pemeriksaan kendaraan bermotor.
-
-Aplikasi ini memiliki pembagian peran (role-based) yang ketat antara **Admin**, **Petugas**, dan **Viewer**.
+<p align="center">
+  <b>Modern Vehicle Access & Inspection Management Platform</b>
+</p>
 
 ---
 
-## 📂 Struktur File & Arsitektur
+### 📋 PROJECT OVERVIEW
 
-Proyek ini mengikuti struktur standar Laravel dengan beberapa penyesuaian untuk modularitas:
+**VAR APP** is a comprehensive vehicle access management system designed for industrial environments. The platform streamlines the process of requesting and inspecting vehicle access permissions, ensuring that all operational vehicles meet the required safety and documentation standards.
 
+The system manages the following core modules:
+
+-   **SIMPER**: Surat Izin Mengemudi Perusahaan (Company Driver's License)
+-   **UJSIMP**: Uji SIMP (Driver's Competency Testing)
+-   **CHECKUP**: Vehicle Physical Inspection
+-   **RANMOR**: Motorized Vehicle Inspection
+
+The application provides a robust ecosystem for:
+
+-   📄 **Digital Inspection Documentation**
+-   ⚙️ **Automated Approval Workflows**
+-   🔐 **Role-Based Access Control (RBAC)**
+-   📋 **Centralized Inspection Template System**
+
+---
+
+### ✨ CORE FEATURES
+
+-   🏗️ **Modular Inspection System** - Specialized modules for different inspection types.
+-   🛡️ **Role Based Access Control** - Secure access management for Admin, Petugas, and Viewer.
+-   🔄 **Document Approval Workflow** - Multi-stage approval process with status tracking.
+-   📂 **Digital Inspection Records** - Paperless storage and management of all inspection data.
+-   🛠️ **Unified Inspection Template System** - Standardized templates for consistent data entry.
+-   🎨 **Modern UI Design System** - Professional and intuitive user interface based on the VAR APP design system.
+
+---
+
+### 👥 SYSTEM ROLES
+
+| Role        | Description                                               |
+| :---------- | :-------------------------------------------------------- |
+| **Admin**   | Document approval, system monitoring, and PDF generation. |
+| **Petugas** | Data entry, inspection input, and draft submission.       |
+| **Viewer**  | View document history and personal application status.    |
+
+---
+
+### 🏗️ PROJECT ARCHITECTURE
+
+The project follows a clean and modular Laravel architecture:
+
+```text
+app/
+├── Http/
+│   └── Controllers/   # Business logic (Admin, Petugas, Viewer)
+├── Models/            # Database entities (Simper, Checkup, Ranmor, Ujsimp)
+database/
+├── migrations/        # Database schema definitions
+└── seeders/           # Initial demo data (Users, Templates, etc.)
+resources/
+├── views/             # Blade templates (Admin, Petugas, Viewer layouts)
+└── css/               # Tailwind CSS and Design System styles
+routes/                # Web routing with Role-based middleware
+public/                # Static assets (logos, images, compiled assets)
 ```
-d:\var-app\
-├── app\
-│   ├── Http\
-│   │   ├── Controllers\
-│   │   │   ├── Admin\       # Controller khusus untuk role Admin (Approval, PDF, Dashboard)
-│   │   │   ├── Petugas\     # Controller khusus untuk role Petugas (Input Data, Edit)
-│   │   │   └── Viewer\      # Controller khusus untuk role Viewer (Read-only, History)
-│   ├── Models\
-│   │   ├── Simper\          # Model terkait modul SIMPER (SimperDocument, SimperNote, dll)
-│   │   ├── Checkup\         # Model terkait modul CHECKUP
-│   │   ├── Ranmor\          # Model terkait modul RANMOR
-│   │   └── Ujsimp\          # Model terkait modul UJSIMP
-├── database\
-│   ├── migrations\          # Definisi skema database
-│   └── seeders\             # Data awal untuk testing (User, Template, dll)
-├── resources\
-│   ├── views\
-│   │   ├── admin\           # View untuk halaman Admin
-│   │   ├── petugas\         # View untuk halaman Petugas
-│   │   ├── viewer\          # View untuk halaman Viewer
-│   │   ├── components\      # Komponen Blade reusable (Sidebar, StatusBadge, dll)
-│   │   └── layouts\         # Layout utama (app-master.blade.php)
-├── routes\
-│   └── web.php              # Definisi routing dengan middleware role
-└── public\                  # Aset statis (gambar, build hasil Vite)
-```
+
+**Key Components:**
+
+-   **Controllers**: Handle request logic and route to appropriate services.
+-   **Models**: Represent data structures and relationships for each module.
+-   **Views**: Modern Blade templates with Tailwind CSS and AlpineJS.
+-   **Seeders**: Automated population of demo accounts and system templates.
 
 ---
 
-## 🔐 Akun Demo (Seeder)
+### 🔑 DEMO ACCOUNTS
 
-Berikut adalah daftar akun default yang disediakan oleh `UserSeeder` untuk keperluan testing dan development. Password default untuk semua akun adalah: **`password`**.
+Use the following seeded accounts for testing and development purposes.
 
-| Role        | Email                                     | Password   | Deskripsi                                    |
-| :---------- | :---------------------------------------- | :--------- | :------------------------------------------- |
-| **Admin**   | `admin@var.com`                           | `password` | Akses penuh, approval dokumen, cetak PDF.    |
-| **Petugas** | `petugas1@var.com` s/d `petugas5@var.com` | `password` | Input data, edit draft, submit dokumen.      |
-| **Viewer**  | `budi@var.com`                            | `password` | Hanya bisa melihat dokumen miliknya sendiri. |
-| **Viewer**  | `andi@var.com`                            | `password` | Hanya bisa melihat dokumen miliknya sendiri. |
+| Role        | Email              | Password   | Description                   |
+| :---------- | :----------------- | :--------- | :---------------------------- |
+| **Admin**   | `admin@var.com`    | `password` | Full system access & approval |
+| **Petugas** | `petugas1@var.com` | `password` | Data entry & inspection input |
+| **Viewer**  | `budi@var.com`     | `password` | Read-only history access      |
+
+> [!NOTE]
+> The default password for all demo accounts is **`password`**.
 
 ---
 
-## 🚀 Tutorial Instalasi & Menjalankan Project
+### 🚀 INSTALLATION GUIDE
 
-Ikuti langkah-langkah berikut untuk menjalankan proyek ini di lingkungan lokal Anda.
+Follow these steps to set up the project locally.
 
-### Prasyarat
-
-Pastikan Anda telah menginstal:
-
--   **PHP** >= 8.2
--   **Composer**
--   **Node.js** & **NPM**
--   **Database** (MySQL/MariaDB/SQLite)
-
-### Langkah 1: Clone & Install Dependencies
-
-1.  Buka terminal di direktori proyek.
-2.  Install dependensi PHP:
-    ```bash
-    composer install
-    ```
-3.  Install dependensi JavaScript (Tailwind, AlpineJS, Vite):
-    ```bash
-    npm install
-    ```
-
-### Langkah 2: Konfigurasi Environment
-
-1.  Salin file contoh konfigurasi `.env`:
-    ```bash
-    cp .env.example .env
-    ```
-2.  Buka file `.env` dan sesuaikan konfigurasi database Anda:
-    ```env
-    DB_CONNECTION=mysql
-    DB_HOST=127.0.0.1
-    DB_PORT=3306
-    DB_DATABASE=var_app
-    DB_USERNAME=root
-    DB_PASSWORD=
-    ```
-3.  Generate Application Key:
-    ```bash
-    php artisan key:generate
-    ```
-
-### Langkah 3: Setup Database & Seeding
-
-Jalankan migrasi database dan isi dengan data awal (termasuk akun demo di atas):
+#### STEP 1 — CLONE PROJECT
 
 ```bash
-php artisan migrate --seed
+git clone <repository-url>
+cd var-app
 ```
 
-### Langkah 4: Jalankan Aplikasi
+#### STEP 2 — INSTALL DEPENDENCIES
 
-Anda perlu menjalankan dua terminal terpisah:
+```bash
+composer install
+npm install
+```
+
+#### STEP 3 — ENVIRONMENT CONFIGURATION
+
+```bash
+cp .env.example .env
+```
+
+_Configure your database credentials inside the `.env` file._
+
+#### STEP 4 — GENERATE APPLICATION KEY
+
+```bash
+php artisan key:generate
+```
+
+---
+
+### 🗄️ DATABASE SETUP
+
+Choose one of the following seeding options based on your needs.
+
+#### OPTION A — RUN ONLY ACCOUNT SEEDER
+
+This will create only the demo user accounts listed above.
+
+```bash
+php artisan migrate
+php artisan db:seed --class=UserSeeder
+```
+
+#### OPTION B — RUN FULL SEEDER
+
+This will populate the entire system with comprehensive demo data.
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+_This option includes:_
+
+-   ✅ Demo accounts
+-   ✅ Inspection templates
+-   ✅ Sample inspection documents
+
+---
+
+### 🏃 RUNNING THE APPLICATION
+
+To start the development environment, run both commands in separate terminals:
 
 **Terminal 1 (Laravel Server):**
 
@@ -125,40 +171,51 @@ Anda perlu menjalankan dua terminal terpisah:
 php artisan serve
 ```
 
-**Terminal 2 (Vite Development Server):**
+**Terminal 2 (Vite Server):**
 
 ```bash
 npm run dev
 ```
 
-### Langkah 5: Akses Aplikasi
+---
 
-Buka browser dan kunjungi alamat:
-[http://127.0.0.1:8000](http://127.0.0.1:8000)
+### 🌐 ACCESS THE APPLICATION
 
-Anda akan diarahkan ke halaman Login. Gunakan salah satu akun demo di atas untuk masuk.
+Once the servers are running, access the application at:
+
+[**http://127.0.0.1:8000**](http://127.0.0.1:8000)
 
 ---
 
-## 🛠️ Catatan Pengembangan
+### 🛠️ TECHNOLOGY STACK
 
--   **PDF Generation**: Menggunakan `barryvdh/laravel-dompdf`. Pastikan konfigurasi PHP Anda mendukung ekstensi yang diperlukan.
--   **Frontend**: Menggunakan **Tailwind CSS** untuk styling dan **AlpineJS** untuk interaktivitas ringan. Asset dibundle menggunakan **Vite**.
--   **Middleware**: Akses dibatasi menggunakan middleware `role:admin`, `role:petugas`, dan `role:viewer` di `routes/web.php`.
-
----
-
-## 👨‍💻 Informasi Pengembang
-
-Project ini dikembangkan sebagai bagian dari program **Kerja Praktek (KP)**.
-
-| Keterangan         | Detail                                              |
-| :----------------- | :-------------------------------------------------- |
-| **Nama Mahasiswa** | Nur Taliyah                                         |
-| **NIM**            | 202312030                                           |
-| **Institusi**      | **STITEK** (Sekolah Tinggi Teknologi)               |
-| **Tujuan Project** | Digitalisasi Sistem Pengajuan Akses Kendaraan (VAR) |
+-   **Framework**: Laravel 12
+-   **Frontend**: Tailwind CSS & AlpineJS
+-   **Build Tool**: Vite
+-   **Database**: MySQL
+-   **PDF Engine**: Barryvdh DomPDF
 
 ---
 
-_Dokumentasi ini diperbarui pada 26 Februari 2026._
+### 📝 DEVELOPMENT NOTES
+
+-   **Role Middleware**: Access control is enforced via `role:admin`, `role:petugas`, and `role:viewer` middlewares.
+-   **PDF Generation**: Document export functionality is powered by the DomPDF library for high-quality reports.
+-   **Inspection Template System**: A centralized system allows for easy modification of inspection criteria across all modules.
+
+---
+
+### 👨‍💻 PROJECT AUTHOR
+
+| Field            | Detail                                          |
+| :--------------- | :---------------------------------------------- |
+| **Student Name** | Nur Taliyah                                     |
+| **NIM**          | 202312030                                       |
+| **Institution**  | **STITEK** (Sekolah Tinggi Teknologi)           |
+| **Project Goal** | Digitalization of Vehicle Access Request System |
+
+---
+
+<p align="center">
+  <b>VAR APP — Vehicle Access Request System</b>
+</p>
